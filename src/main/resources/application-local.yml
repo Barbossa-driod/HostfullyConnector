@@ -1,0 +1,6 @@
+spring:
+  profiles: local
+
+safely:
+  baseUrl: http://localhost:8080/
+  apiAccountSecretName: SafelyConnectorUser/Dev

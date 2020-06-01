@@ -1,0 +1,6 @@
+spring:
+  profiles: prod
+
+safely:
+  baseUrl: https://api.safely.ai/
+  apiAccountSecretName: SafelyConnectorUser/Pro

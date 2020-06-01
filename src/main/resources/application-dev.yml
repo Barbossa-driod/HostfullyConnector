@@ -1,0 +1,6 @@
+spring:
+  profiles: dev
+
+safely:
+  baseUrl: https://dev.api.safely.ai/
+  apiAccountSecretName: SafelyConnectorUser/Dev

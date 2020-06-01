@@ -1,0 +1,3 @@
+safely:
+  pmsRateLimitPerMinute: 100
+  safelyRateLimitPerMinute: 400
