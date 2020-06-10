@@ -48,7 +48,6 @@ public class PmsReservationProperty {
   @JsonProperty("currency")
   private String currency;
 
-  //TODO: make this into a series of constants???
   @JsonProperty("state")
   private String state;
 
@@ -95,6 +94,18 @@ public class PmsReservationProperty {
 
   @JsonProperty("baseDailyRate")
   private Integer baseDailyRate;
+
+  @JsonProperty("webLink")
+  private String webLink;
+
+  @JsonProperty("city")
+  private String city;
+
+  @JsonProperty("externalID")
+  private String externalID;
+
+  @JsonProperty("availabilityCalendarUrl")
+  private String availabilityCalendarUrl;
 
   public static class type{
     public static final String HOUSE = "HOUSE";
