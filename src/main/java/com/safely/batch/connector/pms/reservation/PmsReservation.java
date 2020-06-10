@@ -43,11 +43,11 @@ public class PmsReservation {
     @JsonProperty("countryCode")
     private String countryCode;
 
-    //TODO: make sure I am supposed to use a double here
     @JsonProperty("quoteAmount")
-    private Double quoteAmount;
+    private Integer quoteAmount;
 
-    //TODO: create the property object to hold the property field in the PMS Reservation Property
+    @JsonProperty("property")
+    private PmsReservationProperty property;
 
     @JsonProperty("stayDetails")
     private PmsReservationStayDetails stayDetails;
