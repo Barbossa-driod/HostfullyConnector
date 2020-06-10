@@ -9,22 +9,12 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PmsPhoto {
-    @JsonProperty("id")
-    private Integer id;
-    @JsonProperty("name")
-    private String name;
-    @JsonProperty("type")
-    private String type;
-    @JsonProperty("original")
-    private String original;
-    @JsonProperty("order")
-    private Integer order;
-    @JsonProperty("createdAt")
-    private String createdAt;
-    @JsonProperty("createdBy")
-    private String createdBy;
-    @JsonProperty("updatedAt")
-    private String updatedAt;
-    @JsonProperty("updatedBy")
-    private String updatedBy;
+    @JsonProperty("url")
+    private String url;
+    @JsonProperty("description")
+    private String description;
+    @JsonProperty("uid")
+    private String uid;
+    @JsonProperty("displayOrder")
+    private Integer displayOrder;
 }
