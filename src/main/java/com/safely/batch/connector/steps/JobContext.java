@@ -7,7 +7,6 @@ import com.safely.api.domain.Reservation;
 import com.safely.batch.connector.common.domain.safely.auth.JWTToken;
 import com.safely.batch.connector.pms.property.PmsProperty;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
-import com.safely.batch.connector.pms.photo.PmsPhoto;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +14,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Component
 @Data
@@ -33,8 +31,6 @@ public class JobContext {
 
     // properties loaded from PMS
     private List<PmsProperty> pmsProperties;
-    // photos for properties from PMS
-    private Map<Integer, List<PmsPhoto>> pmsPropertyPhotos;
     // reservations loaded from PMS
     private List<PmsReservation> pmsReservations;
 

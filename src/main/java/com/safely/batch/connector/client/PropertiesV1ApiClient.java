@@ -1,6 +1,5 @@
 package com.safely.batch.connector.client;
 
-import com.safely.batch.connector.pms.ResponsePage;
 import com.safely.batch.connector.pms.property.PmsProperty;
 import java.util.List;
 import retrofit2.Call;

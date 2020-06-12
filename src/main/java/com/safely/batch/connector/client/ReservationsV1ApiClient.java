@@ -1,12 +1,15 @@
 package com.safely.batch.connector.client;
 
-import com.safely.batch.connector.pms.ResponsePage;
+import com.safely.batch.connector.pms.reservation.PmsReservation;
+import java.util.List;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Query;
 
 public interface ReservationsV1ApiClient {
 
-  @GET("")
-  Call<ResponsePage<Object>> listReservations(@Header("Authorization") String authorization);
+  @GET("v1/leads/")
+  Call<List<PmsReservation>> listReservations(@Header("X-HOSTFULLY-APIKEY") String hostfullyAPIKey,
+      @Query("agencyUid") String agencyUid, @Query("limit") int limit, @Query("offset") int offset);
 }

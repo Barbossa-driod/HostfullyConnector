@@ -3,7 +3,6 @@ package com.safely.batch.connector;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.RateLimiter;
-import com.safely.batch.connector.client.PhotosV1ApiClient;
 import com.safely.batch.connector.client.PropertiesV1ApiClient;
 import com.safely.batch.connector.client.ReservationsV1ApiClient;
 import com.safely.batch.connector.common.client.safely.AuthenticationV1ApiClient;
@@ -47,11 +46,6 @@ public class RetrofitConfiguration {
   }
 
   @Bean
-  public PhotosV1ApiClient getPhotosV1ApiClient(@Qualifier("PmsApiBuilder") Retrofit retrofit) {
-    return retrofit.create(PhotosV1ApiClient.class);
-  }
-
-  @Bean
   public ReservationsV1ApiClient getReservationsV1ApiClient(
       @Qualifier("PmsApiBuilder") Retrofit retrofit) {
     return retrofit.create(ReservationsV1ApiClient.class);
@@ -60,7 +54,7 @@ public class RetrofitConfiguration {
   @Bean
   @Qualifier("PmsApiRateLimiter")
   public RateLimiter getPmsApiRateLimiter() {
-    int ratePerMinute = safelyPropertiesConfig.getPmsRateLimitPerMinute() == null ? 100
+    int ratePerMinute = safelyPropertiesConfig.getPmsRateLimitPerMinute() == null ? 17
         : safelyPropertiesConfig.getPmsRateLimitPerMinute();
     double permitsPerSecond = ratePerMinute / 60.0;
     log.info("Creating Pms API RateLimiter with permits per second of: {}", permitsPerSecond);

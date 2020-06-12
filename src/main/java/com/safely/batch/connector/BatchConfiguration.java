@@ -46,10 +46,6 @@ public class BatchConfiguration {
   @Autowired
   private Step loadPmsProperties;
 
-  @Qualifier("loadPmsPhotos")
-  @Autowired
-  private Step loadPmsPhotos;
-
   @Qualifier("loadPmsReservations")
   @Autowired
   private Step loadPmsReservations;
@@ -101,7 +97,6 @@ public class BatchConfiguration {
         .flow(safelyAuth)
         .next(loadOrganizations)
         .next(loadPmsProperties)
-        .next(loadPmsPhotos)
         .next(loadPmsReservations)
         .next(convertPmsPropertiesToSafely)
         .next(convertPmsReservationsToSafely)

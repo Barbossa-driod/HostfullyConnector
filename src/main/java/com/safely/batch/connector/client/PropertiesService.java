@@ -1,7 +1,6 @@
 package com.safely.batch.connector.client;
 
 import com.google.common.util.concurrent.RateLimiter;
-import com.safely.batch.connector.pms.ResponsePage;
 import com.safely.batch.connector.pms.property.PmsProperty;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -35,44 +34,44 @@ public class PropertiesService {
     this.rateLimiter = rateLimiter;
   }
 
-  public List<PmsProperty> getProperties(String token, LocalDate modified) throws Exception {
+  public List<PmsProperty> getProperties(String token, String agencyUid) throws Exception {
     Assert.notNull(token, "Authentication token cannot be null!");
+    Assert.notNull(agencyUid, "agencyUid cannot be null!");
 
-    String authenticationToken = String.format(AUTHENTICATION_BEARER_FORMAT, token);
+
     List<PmsProperty> properties = new ArrayList<>();
-    String modifiedDateString =
-        modified != null ? modified.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) : null;
+
 
     int offset = 0;
     int retrievedCount = 0;
-    int totalCount = 0;
     int pageCount = 1;
     do {
       log.info("Loading page {} of listProperties.", pageCount);
       try {
         rateLimiter.acquire();
 
-//        Call<ResponsePage<PmsProperty>> apiCall = propertiesV1ApiClient
-//            .listProperties(authenticationToken, LIMIT, offset, modifiedDateString);
-//        Response<ResponsePage<PmsProperty>> response = apiCall.execute();
-//
-//        if (!response.isSuccessful()) {
-//          log.error("ListProperties call failed! Error Code: {}", response.code());
-//          throw new Exception(response.message());
-//        }
-//
-//        ResponsePage<PmsProperty> page = response.body();
-//        totalCount = page.getCount();
-//        retrievedCount = page.getResults().size();
-//        properties.addAll(page.getResults());
-//        offset = offset + retrievedCount;
+        Call<List<PmsProperty>> apiCall = propertiesV1ApiClient
+            .listProperties(token, agencyUid, LIMIT, offset);
+        Response<List<PmsProperty>> response = apiCall.execute();
+
+        if (!response.isSuccessful()) {
+          log.error("ListProperties call failed! Error Code: {}", response.code());
+          throw new Exception(response.message());
+        }
+
+        List<PmsProperty> page = response.body();
+        properties.addAll(page);
+
+        retrievedCount = page.size();
+
+        offset = offset + retrievedCount;
 
       } catch (Exception ex) {
         log.error("Exception while calling ListProperties!", ex);
         throw ex;
       }
       pageCount++;
-    } while (properties.size() < totalCount || retrievedCount > 0);
+    } while (retrievedCount > 0);
 
     return properties;
   }

@@ -1,7 +1,6 @@
 package com.safely.batch.connector.client;
 
 import com.google.common.util.concurrent.RateLimiter;
-import com.safely.batch.connector.pms.ResponsePage;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -12,8 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import retrofit2.Call;
-import retrofit2.Response;
 
 @Service
 public class ReservationsService {
