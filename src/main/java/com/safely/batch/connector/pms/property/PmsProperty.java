@@ -36,7 +36,7 @@ public class PmsProperty {
     @JsonProperty("maximumGuests")
     private Integer maximumGuests;
 
-    //this is being parsed as a double for now but might need to be changed
+    //this is being parsed as a integer for now but might need to be changed
     @JsonProperty("cleaningFeeAmount")
     private Integer cleaningFeeAmount;
 
