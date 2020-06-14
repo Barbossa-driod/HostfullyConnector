@@ -8,7 +8,7 @@ import com.safely.api.domain.enumeration.PhotoType;
 import com.safely.api.domain.enumeration.PropertyStatus;
 import com.safely.api.domain.enumeration.PropertyType;
 import com.safely.batch.connector.pms.property.PmsProperty;
-import com.safely.batch.connector.pms.photo.PmsPhoto;
+import com.safely.batch.connector.pms.property.PmsPropertyPhoto;
 import com.safely.batch.connector.steps.JobContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,16 +45,18 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     }
 
     List<PmsProperty> pmsProperties = jobContext.getPmsProperties();
-    Map<Integer, List<PmsPhoto>> propertyImages = jobContext.getPmsPropertyPhotos();
+    //Map<Integer, List<PmsPhoto>> propertyImages = jobContext.getPmsPropertyPhotos();
 
     List<Property> pmsConvertedProperties = new ArrayList<>();
+
     for (PmsProperty pmsProperty : pmsProperties) {
       // TODO: Implement any custom logic for converting a PMS property to a Safely property
 
-      List<PmsPhoto> images = new ArrayList<>();
-      if (propertyImages != null && propertyImages.containsKey(pmsProperty.getId())) {
-        images.addAll(propertyImages.get(pmsProperty.getId()));
-      }
+      List<PmsPropertyPhoto> images = new ArrayList<>();
+      images = pmsProperty.getPhotos();
+//      if (propertyImages != null && propertyImages.containsKey(pmsProperty.getId())) {
+//        images.addAll(propertyImages.get(pmsProperty.getId()));
+//      }
       Property property = convertToSafelyProperty(organization, pmsProperty, images);
       pmsConvertedProperties.add(property);
     }
@@ -65,32 +67,33 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
   }
 
   protected Property convertToSafelyProperty(Organization organization, PmsProperty pmsProperty,
-      List<PmsPhoto> propertyImages) {
+      List<PmsPropertyPhoto> propertyImages) {
 
     // TODO: Implement custom logic to convert the PMS Property to a SafelyProperty.
 
     Property safelyProperty = new Property();
     safelyProperty.setOrganizationId(organization.getId());
-    safelyProperty.setReferenceId(String.valueOf(pmsProperty.getId()));
+    safelyProperty.setReferenceId(String.valueOf(pmsProperty.getUid()));
     safelyProperty.setName(pmsProperty.getName());
 
     safelyProperty.setDescription(pmsProperty.getShortDescription());
 
-    safelyProperty.setAccomodates(pmsProperty.getMaxOccupancy());
-    safelyProperty.setAccomodatesAdults(pmsProperty.getMaxOccupancy());
+    safelyProperty.setAccomodates(pmsProperty.getMaximumGuests());
+    safelyProperty.setAccomodatesAdults(pmsProperty.getMaximumGuests());
 
     // only using full baths for current calculation
-    safelyProperty.setBathRooms(String.valueOf(pmsProperty.getFullBathrooms()));
+    safelyProperty.setBathRooms(String.valueOf(pmsProperty.getBathrooms()));
     safelyProperty.setBedRooms(String.valueOf(pmsProperty.getBedrooms()));
 
     //Address
-    safelyProperty.setStreetLine1(pmsProperty.getStreetAddress());
-    safelyProperty.setStreetLine2(pmsProperty.getExtendedAddress());
-    safelyProperty.setCity(pmsProperty.getLocality());
-    safelyProperty.setPostalCode(pmsProperty.getPostal());
+    safelyProperty.setStreetLine1(pmsProperty.getAddress1());
+    safelyProperty.setStreetLine2(pmsProperty.getAddress2());
+    safelyProperty.setCity(pmsProperty.getCity());
+    safelyProperty.setPostalCode(pmsProperty.getPostalCode().toString());
     //TODO: Update to use consistent logic with other connectors
-    safelyProperty.setStateCode(pmsProperty.getRegion());
-    safelyProperty.setCountryCode(pmsProperty.getCountry());
+    safelyProperty.setStateCode(pmsProperty.getState());
+    //note: we get the 2 letter country code abbreviation
+    safelyProperty.setCountryCode(pmsProperty.getCountryCode());
 
     setPropertyType(pmsProperty, safelyProperty, organization);
     setPropertyStatus(pmsProperty, safelyProperty);
@@ -104,39 +107,40 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     //PMS created date
     // TODO: Revert when we move to >= JAVA 11
     //if (pmsProperty.getCreatedAt() != null && !pmsProperty.getCreatedAt().isBlank()) {
-    if (pmsProperty.getCreatedAt() != null && !pmsProperty.getCreatedAt().isEmpty()) {
-      OffsetDateTime createDate = OffsetDateTime.parse(pmsProperty.getCreatedAt());
+
       safelyProperty
-          .setPmsCreateDate(createDate.atZoneSameInstant(ZoneOffset.UTC).toLocalDateTime());
-    }
+          .setPmsCreateDate(pmsProperty.getCreatedDate());
+
 
     //PMS updated date
     // TODO: Revert when we move to >= JAVA 11
     //if (pmsProperty.getUpdatedAt() != null && !pmsProperty.getUpdatedAt().isBlank()) {
-    if (pmsProperty.getUpdatedAt() != null && !pmsProperty.getUpdatedAt().isEmpty()) {
-      OffsetDateTime updatedDate = OffsetDateTime.parse(pmsProperty.getUpdatedAt());
-      safelyProperty
-          .setPmsUpdateDate(updatedDate.atZoneSameInstant(ZoneOffset.UTC).toLocalDateTime());
-    }
+    //if (pmsProperty.getUpdatedAt() != null && !pmsProperty.getUpdatedAt().isEmpty())
+
+    //TODO: hostfully does not have an updatedAt so I do not know what to do about that
+    //OffsetDateTime updatedDate = OffsetDateTime.parse(pmsProperty.getUpdatedAt());
+//      safelyProperty
+//          .setPmsUpdateDate(updatedDate.atZoneSameInstant(ZoneOffset.UTC).toLocalDateTime());
+
 
     return safelyProperty;
   }
 
-  private void setPropertyImages(PmsProperty pmsProperty, List<PmsPhoto> propertyImages,
+  private void setPropertyImages(PmsProperty pmsProperty, List<PmsPropertyPhoto> propertyImages,
       Property safelyProperty) {
 
     // TODO: Implement custom logic to handle PMS photos
 
     List<PropertyPhoto> propertyPhotos = new ArrayList<>();
-    for (PmsPhoto image : propertyImages) {
+    for (PmsPropertyPhoto image : propertyImages) {
       PropertyPhoto photo = new PropertyPhoto();
-      photo.setId(String.valueOf(image.getId()));
-      photo.setCaption(image.getName());
+      photo.setId(String.valueOf(image.getUid()));
+      photo.setCaption(image.getDescription());
       photo.setActive(Boolean.TRUE);
-      photo.setUrl(image.getOriginal());
+      photo.setUrl(image.getUrl());
       photo.setType(PhotoType.IMAGE);
-      photo.setDisplayOrder(image.getOrder());
-      if (pmsProperty.getCoverImage().equalsIgnoreCase(image.getOriginal())) {
+      photo.setDisplayOrder(image.getDisplayOrder());
+      if (pmsProperty.getPicture().equalsIgnoreCase(image.getUrl())) {
         photo.setPrimary(Boolean.TRUE);
       } else {
         photo.setPrimary(Boolean.FALSE);
