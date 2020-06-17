@@ -1,9 +1,11 @@
 package com.safely.batch.connector.steps.convertPmsPropertiesToSafely;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import com.safely.api.domain.Organization;
 import com.safely.api.domain.Property;
 import com.safely.api.domain.PropertyPhoto;
-import com.safely.api.domain.enumeration.ConnectorOperationMode;
 import com.safely.api.domain.enumeration.PhotoType;
 import com.safely.api.domain.enumeration.PropertyStatus;
 import com.safely.api.domain.enumeration.PropertyType;
@@ -18,11 +20,6 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
 
@@ -94,8 +91,6 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     safelyProperty.setPmsObjectHashcode(pmsProperty.hashCode());
 
     //PMS created date
-    // TODO: Revert when we move to >= JAVA 11
-    //if (pmsProperty.getCreatedAt() != null && !pmsProperty.getCreatedAt().isBlank()) {
     if(pmsProperty.getCreatedDate() != null) {
       safelyProperty
           .setPmsCreateDate(pmsProperty.getCreatedDate());

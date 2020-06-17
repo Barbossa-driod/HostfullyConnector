@@ -52,7 +52,6 @@ public class PmsProperty {
     @JsonProperty("currencySymbol")
     private String currencySymbol;
 
-    //TODO: make this into a series of constants???
     @JsonProperty("state")
     private String state;
 
