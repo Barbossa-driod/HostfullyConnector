@@ -17,4 +17,6 @@ public class SafelyPropertiesConfig {
 
   private Integer pmsRateLimitPerMinute;
   private Integer safelyRateLimitPerMinute;
+
+  private String pmsPartnerApiKey;
 }
