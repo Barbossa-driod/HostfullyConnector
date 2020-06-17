@@ -91,6 +91,12 @@ public class PmsReservation {
     @JsonProperty("infantCount")
     private Integer infantCount;
 
+    @JsonProperty("phoneNumber")
+    private String phoneNumber;
+
+    @JsonProperty("cellphoneNumber")
+    private String cellphoneNumber;
+
     public static class status{
         public static final String NEW = "NEW";
         public static final String ON_HOLD = "ON_HOLD";
