@@ -32,7 +32,7 @@ public class RetrofitConfiguration {
   public Retrofit getPmsApiRetrofit(ObjectMapper objectMapper) {
 
     Retrofit retrofit = new Retrofit.Builder()
-        .baseUrl("https://url-for-pms-api/")
+        .baseUrl(safelyPropertiesConfig.getHostfullyBaseUrl())
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))
         .build();
 

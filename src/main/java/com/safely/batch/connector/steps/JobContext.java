@@ -61,41 +61,4 @@ public class JobContext {
     public String getAgencyUid() {
         return getOrganization().getOrganizationSourceCredentials().getCustomCredentialsData().get(AGENCY_UID);
     }
-
-    public String getBaseUrl() {
-        return getOrganization().getOrganizationSourceCredentials().getCustomCredentialsData().get(BASE_URL);
-    }
-
-    public String getServerKey() {
-        return getOrganization().getOrganizationSourceCredentials().getCustomCredentialsData().get(SERVER_KEY);
-    }
-
-    public String getServerSecret() {
-        return getOrganization().getOrganizationSourceCredentials().getCustomCredentialsData().get(SERVER_SECRET);
-    }
-
-    public String getLastUpdateDateFromPms() {
-        return getOrganization().getLastUpdateDateFromPms() != null ? getOrganization().getLastUpdateDateFromPms().format(DateTimeFormatter.ISO_LOCAL_DATE) : null;
-    }
-
-    public String getReservationLoadDate() throws Exception {
-        String startDate = getOrganization().getStartDate() != null ? getOrganization().getStartDate().format(DateTimeFormatter.ISO_LOCAL_DATE) : null;
-        String legacyBookingStartDate = getOrganization().getLegacyBookingStartDate() != null ? getOrganization().getLegacyBookingStartDate().format(DateTimeFormatter.ISO_LOCAL_DATE) : null;
-        String legacyArrivalStartDate = getOrganization().getLegacyArrivalStartDate() != null ? getOrganization().getLegacyArrivalStartDate().format(DateTimeFormatter.ISO_LOCAL_DATE) : null;
-
-        List<String> dates = new ArrayList<>();
-        if (startDate != null)
-            dates.add(startDate);
-        if (legacyBookingStartDate != null)
-            dates.add(legacyBookingStartDate);
-        if (legacyArrivalStartDate != null)
-            dates.add(legacyArrivalStartDate);
-
-        if (dates.size() == 0)
-            throw new Exception("No dates found to start loading reservations.");
-
-        Collections.sort(dates);
-
-        return dates.get(0);
-    }
 }

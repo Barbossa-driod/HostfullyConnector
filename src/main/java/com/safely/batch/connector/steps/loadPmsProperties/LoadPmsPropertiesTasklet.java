@@ -27,21 +27,16 @@ public class LoadPmsPropertiesTasklet implements Tasklet {
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
 
-    Organization organization = jobContext.getOrganization();
-
     log.info("Loading properties from PMS");
 
     String apiKey = jobContext.getHostfullyApiKey();
     String agencyUid = jobContext.getAgencyUid();
 
-        String serverKey = jobContext.getServerKey();
-        String serverSecret = jobContext.getServerSecret();
+    List<PmsProperty> properties = propertyServices.getProperties(apiKey, agencyUid);
 
-        List<PmsProperty> properties = propertyServices.getProperties(apiKey, agencyUid);
+    log.info("Loaded {} properties from PMS.", properties.size());
 
-        log.info("Loaded {} properties from PMS.", properties.size());
-
-        jobContext.setPmsProperties(properties);
+    jobContext.setPmsProperties(properties);
 
     return RepeatStatus.FINISHED;
   }

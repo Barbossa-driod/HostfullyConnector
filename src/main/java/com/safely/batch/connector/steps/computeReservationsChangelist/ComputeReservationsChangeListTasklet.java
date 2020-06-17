@@ -90,6 +90,7 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
       Reservation pmsReservation) {
     safelyReservation.setOrganizationId(pmsReservation.getOrganizationId());
     safelyReservation.setReferenceId(pmsReservation.getReferenceId());
+    safelyReservation.setLegacyOrganizationId(pmsReservation.getLegacyOrganizationId());
 
     // property data
     safelyReservation.setPropertyReferenceId(pmsReservation.getPropertyReferenceId());
@@ -131,7 +132,7 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
 
     safelyReservation.setPmsObjectHashcode(pmsReservation.getPmsObjectHashcode());
 
-      safelyReservation.setLastModifiedDate(Instant.now());
+    safelyReservation.setLastModifiedDate(Instant.now());
 
     return safelyReservation;
   }

@@ -32,13 +32,13 @@ public class PmsReservation {
     private String source;
 
     @JsonProperty("checkInDate")
-    private LocalDateTime checkInDate;
+    private String checkInDate;
 
     @JsonProperty("uid")
     private String uid;
 
     @JsonProperty("checkOutDate")
-    private LocalDateTime checkOutDate;
+    private String checkOutDate;
 
     @JsonProperty("countryCode")
     private String countryCode;
@@ -53,7 +53,7 @@ public class PmsReservation {
     private PmsReservationStayDetails stayDetails;
 
     @JsonProperty("modified")
-    private LocalDateTime modified;
+    private String modified;
 
     @JsonProperty("state")
     private String state;
@@ -80,7 +80,7 @@ public class PmsReservation {
     private String address2;
 
     @JsonProperty("created")
-    private LocalDateTime created;
+    private String created;
 
     @JsonProperty("flightNumber")
     private String flightNumber;

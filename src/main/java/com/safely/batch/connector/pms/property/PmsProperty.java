@@ -77,7 +77,7 @@ public class PmsProperty {
     private String address2;
 
     @JsonProperty("bathrooms")
-    private Integer bathrooms;
+    private String bathrooms;
 
     @JsonProperty("bedrooms")
     private Integer bedrooms;
@@ -151,9 +151,6 @@ public class PmsProperty {
     @JsonProperty("rentalLicenseNumber")
     private BigInteger rentalLicenseNumber;
 
-    @JsonProperty("rentalLicenseNumberExpirationNumber")
-    private LocalDate rentalLicenseNumberExpirationNumber;
-
     @JsonProperty("rentalConditions")
     private List<PmsPropertyRentalConditions> rentalConditions;
 
@@ -189,7 +186,7 @@ public class PmsProperty {
     private Integer maximumStay;
 
     @JsonProperty("createdDate")
-    private LocalDateTime createdDate;
+    private String createdDate;
 
     @JsonProperty("extraGuestFee")
     private Integer extraGuestFee;

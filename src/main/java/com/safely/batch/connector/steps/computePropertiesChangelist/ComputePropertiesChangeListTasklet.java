@@ -33,9 +33,8 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
 
     Organization organization = jobContext.getOrganization();
 
-
     log.info("Processing properties to find changes for organization: {} - ({})",
-        organization.getName(), organization.getId());
+        organization.getName(), organization.getEntityId());
     processProperties(jobContext);
 
     return RepeatStatus.FINISHED;
@@ -102,6 +101,7 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
   protected Property updateProperty(Property safelyProperty, Property pmsProperty) {
 
     safelyProperty.setLegacyOrganizationId(pmsProperty.getLegacyOrganizationId());
+    safelyProperty.setReferenceId(pmsProperty.getReferenceId());
 
     safelyProperty.setName(pmsProperty.getName());
     safelyProperty.setDescription(pmsProperty.getDescription());

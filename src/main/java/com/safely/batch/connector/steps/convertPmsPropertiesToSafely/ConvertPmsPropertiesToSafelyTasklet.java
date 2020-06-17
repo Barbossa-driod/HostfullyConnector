@@ -1,5 +1,7 @@
 package com.safely.batch.connector.steps.convertPmsPropertiesToSafely;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,14 +38,12 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     Organization organization = jobContext.getOrganization();
 
     List<PmsProperty> pmsProperties = jobContext.getPmsProperties();
-    //Map<Integer, List<PmsPhoto>> propertyImages = jobContext.getPmsPropertyPhotos();
 
     List<Property> pmsConvertedProperties = new ArrayList<>();
 
     for (PmsProperty pmsProperty : pmsProperties) {
 
-      List<PmsPropertyPhoto> images = new ArrayList<>();
-      images = pmsProperty.getPhotos();
+      List<PmsPropertyPhoto> images = pmsProperty.getPhotos();
 
       Property property = convertToSafelyProperty(organization, pmsProperty, images);
       pmsConvertedProperties.add(property);
@@ -60,6 +60,7 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
 
     Property safelyProperty = new Property();
     safelyProperty.setOrganizationId(organization.getId());
+    safelyProperty.setLegacyOrganizationId(organization.getLegacyOrganizationId());
     safelyProperty.setReferenceId(String.valueOf(pmsProperty.getUid()));
     safelyProperty.setName(pmsProperty.getName());
 
@@ -69,7 +70,7 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     safelyProperty.setAccomodatesAdults(pmsProperty.getMaximumGuests());
 
     // only using full baths for current calculation
-    safelyProperty.setBathRooms(String.valueOf(pmsProperty.getBathrooms()));
+    safelyProperty.setBathRooms(pmsProperty.getBathrooms());
     safelyProperty.setBedRooms(String.valueOf(pmsProperty.getBedrooms()));
 
     //Address
@@ -78,8 +79,14 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     safelyProperty.setCity(pmsProperty.getCity());
     safelyProperty.setPostalCode(pmsProperty.getPostalCode().toString());
     safelyProperty.setStateCode(pmsProperty.getState());
-    //note: we get the 2 letter country code abbreviation
-    safelyProperty.setCountryCode(pmsProperty.getCountryCode());
+
+
+    if(pmsProperty.getCountryCode() != null && pmsProperty.getCountryCode().length() > 0) {
+      //note: we get the 2 letter country code abbreviation
+      safelyProperty.setCountryCode(pmsProperty.getCountryCode());
+    } else {
+      safelyProperty.setCountryCode("US");
+    }
 
     setPropertyType(pmsProperty, safelyProperty, organization);
     setPropertyStatus(pmsProperty, safelyProperty);
@@ -92,8 +99,8 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
 
     //PMS created date
     if(pmsProperty.getCreatedDate() != null) {
-      safelyProperty
-          .setPmsCreateDate(pmsProperty.getCreatedDate());
+      safelyProperty.setPmsCreateDate(LocalDateTime.parse(pmsProperty.getCreatedDate(),
+              DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
     return safelyProperty;
   }
@@ -140,9 +147,7 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     Map<String, String> propertyTypeMap = organization.getPmsPropertyTypesToSafelyTypesMapping();
     PropertyType propertyType = PropertyType.OTHER;
 
-
-
-    String typeCode = null;
+    String typeCode = pmsProperty.getType();
 
     if (typeCode != null) {
       if (propertyTypeMap != null) {

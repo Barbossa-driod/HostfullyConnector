@@ -1,9 +1,7 @@
 package com.safely.batch.connector.steps.loadPmsReservations;
 
-import com.safely.api.domain.Organization;
 import com.safely.batch.connector.client.ReservationsService;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
-import com.safely.batch.connector.pms.reservation.PmsReservationProperty.type;
 import com.safely.batch.connector.steps.JobContext;
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.Job;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -30,18 +27,13 @@ public class LoadPmsReservationsTasklet implements Tasklet {
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
 
-        Organization organization = jobContext.getOrganization();
 
-        String startingDate = jobContext.getReservationLoadDate();
-        String lastUpdatedDate = jobContext.getLastUpdateDateFromPms();
-
-        String serverKey = jobContext.getServerKey();
-        String serverSecret = jobContext.getServerSecret();
-
-        log.info("Loading reservations with bookingDate: {} and lastUpdatedDate: {}", startingDate, lastUpdatedDate);
+        log.info("Loading reservations from PMS");
 
         List<PmsReservation> serverReservations = reservationsService
             .getReservations(jobContext.getHostfullyApiKey(), jobContext.getAgencyUid());
+
+        log.info("Finished Loading {} from PMS ", serverReservations.size());
 
         scanReservationTypes(serverReservations);
 
