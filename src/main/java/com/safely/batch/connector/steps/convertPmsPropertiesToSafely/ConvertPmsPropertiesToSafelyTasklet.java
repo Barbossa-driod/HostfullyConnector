@@ -37,12 +37,6 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
       throws Exception {
 
     Organization organization = jobContext.getOrganization();
-    if (organization.getConnectorOperationMode() != ConnectorOperationMode.PROPERTIES
-        && organization.getConnectorOperationMode() != ConnectorOperationMode.ALL) {
-      log.info("Skipping convert properties from PMS to Safely. Connector Operation Mode: {}",
-          organization.getConnectorOperationMode().name());
-      return RepeatStatus.FINISHED;
-    }
 
     List<PmsProperty> pmsProperties = jobContext.getPmsProperties();
     //Map<Integer, List<PmsPhoto>> propertyImages = jobContext.getPmsPropertyPhotos();
@@ -50,13 +44,10 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     List<Property> pmsConvertedProperties = new ArrayList<>();
 
     for (PmsProperty pmsProperty : pmsProperties) {
-      // TODO: Implement any custom logic for converting a PMS property to a Safely property
 
       List<PmsPropertyPhoto> images = new ArrayList<>();
       images = pmsProperty.getPhotos();
-//      if (propertyImages != null && propertyImages.containsKey(pmsProperty.getId())) {
-//        images.addAll(propertyImages.get(pmsProperty.getId()));
-//      }
+
       Property property = convertToSafelyProperty(organization, pmsProperty, images);
       pmsConvertedProperties.add(property);
     }
@@ -69,7 +60,6 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
   protected Property convertToSafelyProperty(Organization organization, PmsProperty pmsProperty,
       List<PmsPropertyPhoto> propertyImages) {
 
-    // TODO: Implement custom logic to convert the PMS Property to a SafelyProperty.
 
     Property safelyProperty = new Property();
     safelyProperty.setOrganizationId(organization.getId());
@@ -90,7 +80,6 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     safelyProperty.setStreetLine2(pmsProperty.getAddress2());
     safelyProperty.setCity(pmsProperty.getCity());
     safelyProperty.setPostalCode(pmsProperty.getPostalCode().toString());
-    //TODO: Update to use consistent logic with other connectors
     safelyProperty.setStateCode(pmsProperty.getState());
     //note: we get the 2 letter country code abbreviation
     safelyProperty.setCountryCode(pmsProperty.getCountryCode());
@@ -107,29 +96,15 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     //PMS created date
     // TODO: Revert when we move to >= JAVA 11
     //if (pmsProperty.getCreatedAt() != null && !pmsProperty.getCreatedAt().isBlank()) {
-
+    if(pmsProperty.getCreatedDate() != null) {
       safelyProperty
           .setPmsCreateDate(pmsProperty.getCreatedDate());
-
-
-    //PMS updated date
-    // TODO: Revert when we move to >= JAVA 11
-    //if (pmsProperty.getUpdatedAt() != null && !pmsProperty.getUpdatedAt().isBlank()) {
-    //if (pmsProperty.getUpdatedAt() != null && !pmsProperty.getUpdatedAt().isEmpty())
-
-    //TODO: hostfully does not have an updatedAt so I do not know what to do about that
-    //OffsetDateTime updatedDate = OffsetDateTime.parse(pmsProperty.getUpdatedAt());
-//      safelyProperty
-//          .setPmsUpdateDate(updatedDate.atZoneSameInstant(ZoneOffset.UTC).toLocalDateTime());
-
-
+    }
     return safelyProperty;
   }
 
   private void setPropertyImages(PmsProperty pmsProperty, List<PmsPropertyPhoto> propertyImages,
       Property safelyProperty) {
-
-    // TODO: Implement custom logic to handle PMS photos
 
     List<PropertyPhoto> propertyPhotos = new ArrayList<>();
     for (PmsPropertyPhoto image : propertyImages) {
@@ -170,7 +145,7 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     Map<String, String> propertyTypeMap = organization.getPmsPropertyTypesToSafelyTypesMapping();
     PropertyType propertyType = PropertyType.OTHER;
 
-    // TODO: Implement custom logic to handle property types
+
 
     String typeCode = null;
 

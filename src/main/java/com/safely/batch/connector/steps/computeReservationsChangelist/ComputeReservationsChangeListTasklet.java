@@ -3,7 +3,9 @@ package com.safely.batch.connector.steps.computeReservationsChangelist;
 import com.safely.api.domain.Organization;
 import com.safely.api.domain.Reservation;
 import com.safely.api.domain.enumeration.ConnectorOperationMode;
+import com.safely.batch.connector.pms.reservation.PmsReservation;
 import com.safely.batch.connector.steps.JobContext;
+import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -30,12 +32,6 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
       throws Exception {
 
     Organization organization = jobContext.getOrganization();
-    if (organization.getConnectorOperationMode() != ConnectorOperationMode.RESERVATIONS
-        && organization.getConnectorOperationMode() != ConnectorOperationMode.ALL) {
-      log.info("Skipping compute reservation changes. Connector Operation Mode: {}",
-          organization.getConnectorOperationMode().name());
-      return RepeatStatus.FINISHED;
-    }
 
     log.info("Processing reservations to find changes for organization: {} - ({})",
         organization.getName(), organization.getId());
@@ -67,18 +63,22 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
     for (Reservation pmsReservation : pmsReservations) {
       Reservation safelyReservation = safelyReservationLookup.get(pmsReservation.getReferenceId());
 
-      // TODO: Implement any custom logic for detecting new and updated reservations for the PMS
-
+      //we could possibly use the modified date as well
       if (safelyReservation == null) {
         newReservations.add(pmsReservation);
+      }
+      //use either hashcode or Modified date to detect changes in a reservation
+      if (safelyReservation.getLastModifiedDate() != null && !safelyReservation
+          .getLastModifiedDate().equals(pmsReservation.getLastModifiedDate())){
+          updateReservation(safelyReservation, pmsReservation);
+          updatedReservations.add(safelyReservation);
       } else if (!safelyReservation.getPmsObjectHashcode()
           .equals(pmsReservation.getPmsObjectHashcode())) {
         updateReservation(pmsReservation, safelyReservation);
         updatedReservations.add(safelyReservation);
       }
     }
-
-    // TODO: Implement any custom logic for handling missing or deleted reservations from the PMS.
+    // we could add some logic around deleted reservations but I do not see this in MyVR or Lightmaker
 
     jobContext.setNewReservations(newReservations);
     jobContext.setUpdatedReservations(updatedReservations);
@@ -130,6 +130,8 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
     safelyReservation.setPmsStatus(pmsReservation.getPmsStatus());
 
     safelyReservation.setPmsObjectHashcode(pmsReservation.getPmsObjectHashcode());
+
+      safelyReservation.setLastModifiedDate(Instant.now());
 
     return safelyReservation;
   }

@@ -5,6 +5,7 @@ import com.safely.api.domain.Property;
 import com.safely.api.domain.enumeration.ConnectorOperationMode;
 import com.safely.api.domain.enumeration.PropertyStatus;
 import com.safely.batch.connector.steps.JobContext;
+import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -31,12 +32,7 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
       throws Exception {
 
     Organization organization = jobContext.getOrganization();
-    if (organization.getConnectorOperationMode() != ConnectorOperationMode.PROPERTIES
-        && organization.getConnectorOperationMode() != ConnectorOperationMode.ALL) {
-      log.info("Skipping compute property changes. Connector Operation Mode: {}",
-          organization.getConnectorOperationMode().name());
-      return RepeatStatus.FINISHED;
-    }
+
 
     log.info("Processing properties to find changes for organization: {} - ({})",
         organization.getName(), organization.getId());
@@ -69,18 +65,12 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
     for (Property pmsProperty : pmsProperties) {
       Property safelyProperty = safelyPropertyLookup.get(pmsProperty.getReferenceId());
 
-      // TODO: Implement any custom logic for this PMS around new and updated properties
-
       // if the current PMS property does not exist in the Safely list, it is new
       if (safelyProperty == null) {
         newProperties.add(pmsProperty);
       } else {
-        // PMS publishes an updatedAt date, for now we will use the updatedAt and pmsObjectHashcode to check for changes
-        if (safelyProperty.getPmsUpdateDate() != null && !safelyProperty.getPmsUpdateDate()
-            .equals(pmsProperty.getPmsUpdateDate())) {
-          updateProperty(safelyProperty, pmsProperty);
-          updatedProperties.add(safelyProperty);
-        } else if (!safelyProperty.getPmsObjectHashcode()
+        // pmsObjectHashcode to check for changes
+        if (!safelyProperty.getPmsObjectHashcode()
             .equals(pmsProperty.getPmsObjectHashcode())) {
           updateProperty(safelyProperty, pmsProperty);
           updatedProperties.add(safelyProperty);
@@ -93,7 +83,7 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
     for (Property safelyProperty : safelyProperties) {
       Property pmsProperty = pmsPropertyLookup.get(safelyProperty.getReferenceId());
 
-      // TODO: Implement any custon logic to deal with deleted or missing properties from PMS.
+      //I do not think we need to implement any logic here.
 
       // if we don't see the property in the data pull from PMS, then we will mark the property with PMS Status inactive
       if (pmsProperty == null) {
@@ -111,6 +101,8 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
 
   protected Property updateProperty(Property safelyProperty, Property pmsProperty) {
 
+    safelyProperty.setLegacyOrganizationId(pmsProperty.getLegacyOrganizationId());
+
     safelyProperty.setName(pmsProperty.getName());
     safelyProperty.setDescription(pmsProperty.getDescription());
     safelyProperty.setAccomodates(pmsProperty.getAccomodates());
@@ -120,6 +112,7 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
     safelyProperty.setPropertyType(pmsProperty.getPropertyType());
 
     safelyProperty.setStatus(pmsProperty.getStatus());
+    safelyProperty.setPmsStatus(pmsProperty.getPmsStatus());
 
     // images
     safelyProperty.setPropertyPhotos(pmsProperty.getPropertyPhotos());
@@ -136,6 +129,8 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
     //PMS object details
     safelyProperty.setPmsObjectHashcode(pmsProperty.getPmsObjectHashcode());
     safelyProperty.setPmsUpdateDate(pmsProperty.getPmsUpdateDate());
+
+    safelyProperty.setLastModifiedDate(Instant.now());
 
     return safelyProperty;
   }
