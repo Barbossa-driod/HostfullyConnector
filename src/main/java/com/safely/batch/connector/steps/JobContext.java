@@ -23,6 +23,8 @@ public class JobContext {
     private final static String SERVER_KEY = "SERVER_KEY";
     private final static String SERVER_SECRET = "SERVER_SECRET";
 
+    private final static String AGENCY_UID ="AGENCY_UID";
+
     // authentication toke for Safely API
     private JWTToken safelyToken;
 
@@ -53,6 +55,12 @@ public class JobContext {
     private List<Property> newProperties;
     private List<Property> updatedProperties;
     private List<Property> removedProperties;
+
+    private String hostfullyApiKey;
+
+    public String getAgencyUid() {
+        return getOrganization().getOrganizationSourceCredentials().getCustomCredentialsData().get(AGENCY_UID);
+    }
 
     public String getBaseUrl() {
         return getOrganization().getOrganizationSourceCredentials().getCustomCredentialsData().get(BASE_URL);
