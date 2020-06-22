@@ -57,7 +57,7 @@ public class PmsReservationProperty {
   @JsonProperty("floor")
   private Integer floor;
 
-  @JsonProperty("availabilityCalendarUrl")
+  @JsonProperty("url")
   private String url;
 
   @JsonProperty("areaSize")

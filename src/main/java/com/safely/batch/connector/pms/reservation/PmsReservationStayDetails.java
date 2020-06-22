@@ -14,8 +14,8 @@ public class PmsReservationStayDetails {
   private String extraNotes;
 
   @JsonProperty("departureDate")
-  private LocalDateTime departureDate;
+  private String departureDate;
 
   @JsonProperty("arrivalDate")
-  private LocalDateTime arrivalDate;
+  private String arrivalDate;
 }

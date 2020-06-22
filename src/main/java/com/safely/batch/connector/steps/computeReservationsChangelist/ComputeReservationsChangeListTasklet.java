@@ -68,7 +68,7 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
         newReservations.add(pmsReservation);
       }
       //use either hashcode or Modified date to detect changes in a reservation
-      if (safelyReservation.getLastModifiedDate() != null && !safelyReservation
+      else if (safelyReservation.getLastModifiedDate() != null && !safelyReservation
           .getLastModifiedDate().equals(pmsReservation.getLastModifiedDate())){
           updateReservation(safelyReservation, pmsReservation);
           updatedReservations.add(safelyReservation);

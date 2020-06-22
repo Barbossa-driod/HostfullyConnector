@@ -59,7 +59,7 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
 
 
     Property safelyProperty = new Property();
-    safelyProperty.setOrganizationId(organization.getId());
+    safelyProperty.setOrganizationId(organization.getEntityId());
     safelyProperty.setLegacyOrganizationId(organization.getLegacyOrganizationId());
     safelyProperty.setReferenceId(String.valueOf(pmsProperty.getUid()));
     safelyProperty.setName(pmsProperty.getName());
@@ -100,7 +100,7 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     //PMS created date
     if(pmsProperty.getCreatedDate() != null) {
       safelyProperty.setPmsCreateDate(LocalDateTime.parse(pmsProperty.getCreatedDate(),
-              DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+              DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S")));
     }
     return safelyProperty;
   }

@@ -52,7 +52,7 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
 
     Reservation safelyReservation = new Reservation();
 
-    safelyReservation.setOrganizationId(organization.getId());
+    safelyReservation.setOrganizationId(organization.getEntityId());
 
     safelyReservation.setLegacyOrganizationId(organization.getLegacyOrganizationId());
 
@@ -129,7 +129,11 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
     guestAddress.setStreetLine2(pmsReservation.getAddress2());
     guestAddress.setCity(pmsReservation.getCity());
     guestAddress.setStateCode(pmsReservation.getState());
-    guestAddress.setPostalCode(pmsReservation.getPostalCode().toString());
+
+    if (pmsReservation.getPostalCode() != null) {
+      guestAddress.setPostalCode(pmsReservation.getPostalCode().toString());
+    }
+
     guestAddress.setCountryCode(pmsReservation.getCountryCode());
     guestAddress.setCurrent(Boolean.TRUE);
     guestAddress.setType(AddressType.HOME);
@@ -182,17 +186,18 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
 
     if (pmsReservation.getCreated() != null) {
       safelyReservation.setPmsCreateDate(LocalDateTime.parse(pmsReservation.getCreated(),
-          DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+          DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S")));
     }
 
     if (pmsReservation.getCreated() != null) {
       safelyReservation.setBookingDate(LocalDate.parse(pmsReservation.getCreated(),
-          DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+          DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S")));
     }
 
     if (pmsReservation.getModified() != null) {
       safelyReservation.setPmsUpdateDate(LocalDateTime
-          .parse(pmsReservation.getModified(), DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+          .parse(pmsReservation.getModified(),
+              DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S")));
     }
   }
 
