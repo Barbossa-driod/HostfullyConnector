@@ -1,9 +1,7 @@
 package com.safely.batch.connector.client;
 
 import com.google.common.util.concurrent.RateLimiter;
-import com.safely.batch.connector.pms.property.PmsProperty;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +44,6 @@ public class ReservationsService {
 
     int offset = 0;
     int retrievedCount = 0;
-    int totalCount = 0;
     int pageCount = 1;
     do {
       log.info("Loading page {} of listReservations.", pageCount);
