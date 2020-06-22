@@ -130,8 +130,6 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
     safelyProperty.setPmsObjectHashcode(pmsProperty.getPmsObjectHashcode());
     safelyProperty.setPmsUpdateDate(pmsProperty.getPmsUpdateDate());
 
-    safelyProperty.setLastModifiedDate(Instant.now());
-
     return safelyProperty;
   }
 }

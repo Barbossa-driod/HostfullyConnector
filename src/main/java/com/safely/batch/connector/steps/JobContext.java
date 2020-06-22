@@ -20,8 +20,6 @@ import java.util.List;
 public class JobContext {
 
     private final static String BASE_URL = "BASE_URL";
-    private final static String SERVER_KEY = "SERVER_KEY";
-    private final static String SERVER_SECRET = "SERVER_SECRET";
 
     private final static String AGENCY_UID ="AGENCY_UID";
 

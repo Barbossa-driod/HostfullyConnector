@@ -37,16 +37,12 @@ public class ReservationsService {
     formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
   }
 
-  //public List<PmsReservation> getReservations(String token, LocalDate bookingDate,
-      //LocalDate modified) throws Exception {
   public List<PmsReservation> getReservations(String token, String agencyUid) throws Exception {
     Assert.notNull(token, "Authentication token cannot be null!");
     Assert.notNull(agencyUid, "agencyUid cannot be null!");
 
     String authenticationToken = String.format(AUTHENTICATION_BEARER_FORMAT, token);
     List<PmsReservation> reservations = new ArrayList<>();
-    //String modifiedDateString = modified != null ? modified.format(formatter) : null;
-    //String bookedDateString = bookingDate != null ? bookingDate.format(formatter) : null;
 
     int offset = 0;
     int retrievedCount = 0;
