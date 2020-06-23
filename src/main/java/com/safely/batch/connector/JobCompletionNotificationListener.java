@@ -3,6 +3,7 @@ package com.safely.batch.connector;
 import com.safely.api.domain.Event;
 import com.safely.api.domain.enumeration.EventSeverity;
 import com.safely.api.domain.enumeration.EventStatus;
+import com.safely.api.domain.enumeration.EventSubType;
 import com.safely.api.domain.enumeration.EventType;
 import com.safely.batch.connector.common.services.safely.SafelyConnectorEventsService;
 import com.safely.batch.connector.steps.JobContext;
@@ -38,8 +39,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     Event event = new Event();
     event.setEventType(EventType.CONNECTOR);
 
-    // TODO: Uncomment and set correct EventSubType
-    //event.setEventSubType(EventSubType.<PMS NAME>);
+    event.setEventSubType(EventSubType.HOSTFULLY);
 
     event.setEventStatus(EventStatus.COMPLETE);
     event.setStartTime(asLocalDateTime(jobExecution.getStartTime()));
@@ -53,7 +53,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     event.setCancelledReservations(0);
 
     if (jobContext.getOrganization() != null) {
-      event.setOrganizationId(jobContext.getOrganization().getId());
+      event.setOrganizationId(jobContext.getOrganization().getEntityId());
       event.setOrganizationName(jobContext.getOrganization().getName());
     }
 

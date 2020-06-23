@@ -46,10 +46,6 @@ public class BatchConfiguration {
   @Autowired
   private Step loadPmsProperties;
 
-  @Qualifier("loadPmsPhotos")
-  @Autowired
-  private Step loadPmsPhotos;
-
   @Qualifier("loadPmsReservations")
   @Autowired
   private Step loadPmsReservations;
@@ -86,10 +82,12 @@ public class BatchConfiguration {
   @Autowired
   private Step saveReservationsToSafely;
 
+  @Qualifier("loadPmsApiKey")
+  @Autowired
+  private Step loadPmsApiKey;
+
   @Bean
   public SecretsManagerClient getSecretsManagerClient() {
-    //TODO: Short term, use environment variables to load access and secret key
-    //TODO: long term, assume role of executing service
     return new SecretsManagerClient();
   }
 
@@ -99,9 +97,9 @@ public class BatchConfiguration {
         .incrementer(new RunIdIncrementer())
         .listener(listener)
         .flow(safelyAuth)
+        .next(loadPmsApiKey)
         .next(loadOrganizations)
         .next(loadPmsProperties)
-        .next(loadPmsPhotos)
         .next(loadPmsReservations)
         .next(convertPmsPropertiesToSafely)
         .next(convertPmsReservationsToSafely)

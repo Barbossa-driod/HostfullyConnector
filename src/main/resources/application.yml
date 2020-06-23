@@ -1,3 +1,4 @@
 safely:
-  pmsRateLimitPerMinute: 100
+  pmsRateLimitPerMinute: 17
   safelyRateLimitPerMinute: 400
+  pmsPartnerApiKey: Hostfully/ApiKey

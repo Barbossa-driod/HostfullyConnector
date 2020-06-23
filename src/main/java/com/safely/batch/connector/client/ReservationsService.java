@@ -1,9 +1,7 @@
 package com.safely.batch.connector.client;
 
 import com.google.common.util.concurrent.RateLimiter;
-import com.safely.batch.connector.pms.ResponsePage;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,46 +35,43 @@ public class ReservationsService {
     formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
   }
 
-  public List<PmsReservation> getReservations(String token, LocalDate bookingDate,
-      LocalDate modified) throws Exception {
+  public List<PmsReservation> getReservations(String token, String agencyUid) throws Exception {
     Assert.notNull(token, "Authentication token cannot be null!");
+    Assert.notNull(agencyUid, "agencyUid cannot be null!");
 
     String authenticationToken = String.format(AUTHENTICATION_BEARER_FORMAT, token);
     List<PmsReservation> reservations = new ArrayList<>();
-    String modifiedDateString = modified != null ? modified.format(formatter) : null;
-    String bookedDateString = bookingDate != null ? bookingDate.format(formatter) : null;
 
     int offset = 0;
     int retrievedCount = 0;
-    int totalCount = 0;
     int pageCount = 1;
     do {
       log.info("Loading page {} of listReservations.", pageCount);
       try {
         rateLimiter.acquire();
 
-//        Call<ResponsePage<PmsReservation>> apiCall = reservationsV1ApiClient
-//            .listReservations(authenticationToken, bookedDateString, LIMIT, offset,
-//                modifiedDateString);
-//        Response<ResponsePage<PmsReservation>> response = apiCall.execute();
-//
-//        if (!response.isSuccessful()) {
-//          log.error("ListReservations call failed! Error Code: {}", response.code());
-//          throw new Exception(response.message());
-//        }
-//
-//        ResponsePage<PmsReservation> page = response.body();
-//        totalCount = page.getCount();
-//        retrievedCount = page.getResults().size();
-//        reservations.addAll(page.getResults());
-//        offset = offset + retrievedCount;
+        Call<List<PmsReservation>> apiCall = reservationsV1ApiClient
+            .listReservations(token, agencyUid, LIMIT, offset);
+        Response<List<PmsReservation>> response = apiCall.execute();
+
+        if (!response.isSuccessful()) {
+          log.error("ListReservations call failed! Error Code: {}", response.code());
+          throw new Exception(response.message());
+        }
+
+        List<PmsReservation> page = response.body();
+
+        reservations.addAll(page);
+
+        retrievedCount = page.size();
+        offset = offset + retrievedCount;
 
       } catch (Exception ex) {
         log.error("Exception while calling ListReservations!", ex);
         throw ex;
       }
       pageCount++;
-    } while (reservations.size() < totalCount || retrievedCount > 0);
+    } while (retrievedCount > 0);
 
     return reservations;
   }

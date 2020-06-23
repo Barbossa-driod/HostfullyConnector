@@ -1,4 +1,4 @@
-package com.safely.batch.connector.pms;
+package com.safely.batch.connector.pms.reservation;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -8,7 +8,9 @@ import lombok.Data;
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LinkContainer {
-    @JsonProperty("href")
-    private String href;
+public class PmsReservationAgency {
+  @JsonProperty("uid")
+  private String id;
+  @JsonProperty("name")
+  private String name;
 }

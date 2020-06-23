@@ -1,10 +1,12 @@
 package com.safely.batch.connector.steps.loadPmsReservations;
 
-import com.safely.api.domain.Organization;
 import com.safely.batch.connector.client.ReservationsService;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
 import com.safely.batch.connector.steps.JobContext;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -25,27 +27,45 @@ public class LoadPmsReservationsTasklet implements Tasklet {
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
 
-        Organization organization = jobContext.getOrganization();
 
-//        String startingDate = jobContext.getReservationLoadDate();
-//        String lastUpdatedDate = jobContext.getLastUpdateDateFromPms();
-//
-//        String serverKey = jobContext.getServerKey();
-//        String serverSecret = jobContext.getServerSecret();
-//
-//        log.info("Loading reservations with bookingDate: {} and lastUpdatedDate: {}", startingDate, lastUpdatedDate);
-//
-//        List<PmsReservation> serverReservations = getReservations(startingDate, lastUpdatedDate, serverKey, serverSecret);
-//
-//        scanReservationTypes(serverReservations);
-//
-//        jobContext.setPmsReservations(serverReservations);
+        log.info("Loading reservations from PMS");
+
+        List<PmsReservation> serverReservations = reservationsService
+            .getReservations(jobContext.getHostfullyApiKey(), jobContext.getAgencyUid());
+
+        log.info("Finished Loading {} from PMS ", serverReservations.size());
+
+        scanReservationTypes(serverReservations);
+
+        jobContext.setPmsReservations(serverReservations);
 
         return RepeatStatus.FINISHED;
     }
 
 
     private void scanReservationTypes(List<PmsReservation> reservations) {
-        // TODO: Implement logic to scan reservation types and output unique reservation types
+
+        Map<String, String> source = new HashMap<>();
+        Map<String, String> status = new HashMap<>();
+
+        for (PmsReservation reservation : reservations) {
+            if(reservation != null) {
+                if(!source.containsKey(reservation.getSource())) {
+                    source.put(reservation.getSource(), reservation.getSource());
+                }
+                if(!status.containsKey(reservation.getStatus())) {
+                    status.put(reservation.getStatus(), reservation.getStatus());
+                }
+            }
+        }
+
+        log.info("Reservation source:");
+        for (Entry<String, String> entry : source.entrySet()) {
+            log.info("{}: {}", entry.getKey(), entry.getValue());
+        }
+        log.info("Reservation status:");
+        for (Entry<String, String> entry : status.entrySet()) {
+            log.info("{}: {}", entry.getKey(), entry.getValue());
+        }
     }
 }
