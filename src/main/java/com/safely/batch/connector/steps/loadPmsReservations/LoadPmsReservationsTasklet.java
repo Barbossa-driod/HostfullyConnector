@@ -24,9 +24,12 @@ public class LoadPmsReservationsTasklet implements Tasklet {
     @Autowired
     private ReservationsService reservationsService;
 
+    private static final String STEP_NAME= "LOAD_RESERVATION";
+    private static final String LOADED = "LOADED";
+
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
-
+        HashMap<String, Object> stepStatistics = new HashMap<>();
 
         log.info("Loading reservations from PMS");
 
@@ -36,6 +39,9 @@ public class LoadPmsReservationsTasklet implements Tasklet {
         log.info("Finished Loading {} from PMS ", serverReservations.size());
 
         scanReservationTypes(serverReservations);
+
+        stepStatistics.put(LOADED, serverReservations.size());
+        jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
 
         jobContext.setPmsReservations(serverReservations);
 
