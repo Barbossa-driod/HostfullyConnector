@@ -4,6 +4,7 @@ import com.safely.api.domain.*;
 import com.safely.api.domain.enumeration.*;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
 import com.safely.batch.connector.steps.JobContext;
+import java.util.HashMap;
 import java.util.Map;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -28,21 +29,43 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
   @Autowired
   public JobContext jobContext;
 
+  private static final String CONVERTED= "CONVERTED";
+  private static final String ATTEMPTED = "ATTEMPTED";
+  private static final String FAILED = "FAILED";
+  private static final String FAILED_IDS = "FAILED_IDS";
+  private static final String STEP_NAME = "CONVERT_PMS_RESERVATIONS_TO_SAFELY";
+
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
+
+    HashMap<String, Object> stepStatistics = new HashMap<>();
 
     Organization organization = jobContext.getOrganization();
 
     List<PmsReservation> pmsReservations = jobContext.getPmsReservations();
 
     List<Reservation> pmsConvertedReservations = new ArrayList<>();
+
+    List<String> failedReservationUids = new ArrayList<>();
+
     for (PmsReservation pmsReservation : pmsReservations) {
-      Reservation reservation = convertToSafelyReservation(organization, pmsReservation);
-      pmsConvertedReservations.add(reservation);
+      try {
+        Reservation reservation = convertToSafelyReservation(organization, pmsReservation);
+        pmsConvertedReservations.add(reservation);
+      } catch(Exception e) {
+        log.error("Failed to convert Reservation with Uid {}", pmsReservation.getUid());
+        failedReservationUids.add(pmsReservation.getUid());
+      }
     }
 
     jobContext.setPmsSafelyReservations(pmsConvertedReservations);
+
+    stepStatistics.put(CONVERTED, pmsConvertedReservations.size());
+    stepStatistics.put(ATTEMPTED, pmsReservations.size());
+    stepStatistics.put(FAILED, failedReservationUids.size());
+    stepStatistics.put(FAILED_IDS, failedReservationUids);
+    jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
 
     return RepeatStatus.FINISHED;
   }
