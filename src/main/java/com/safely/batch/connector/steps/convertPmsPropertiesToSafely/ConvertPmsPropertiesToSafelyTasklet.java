@@ -32,26 +32,23 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
   @Autowired
   public JobContext jobContext;
 
-  private HashMap<String, Object> stepStatistics;
-
   private static final String CONVERTED= "CONVERTED";
   private static final String ATTEMPTED = "ATTEMPTED";
   private static final String FAILED = "FAILED";
-  private static final String FAILED_NAMES = "FAILED_NAMES";
-  private static final String STEP_NAME = "CONVERT_PMS_PROPERTIES_TO_SAFELY_TASKET";
+  private static final String FAILED_IDS = "FAILED_IDS";
+  private static final String STEP_NAME = "CONVERT_PMS_PROPERTIES_TO_SAFELY";
 
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
-    stepStatistics = new HashMap<String, Object>();
+    HashMap<String, Object> stepStatistics = new HashMap<>();
     Organization organization = jobContext.getOrganization();
 
     List<PmsProperty> pmsProperties = jobContext.getPmsProperties();
 
     List<Property> pmsConvertedProperties = new ArrayList<>();
 
-    int errorCount = 0;
-    List<String> failedPropertyNames = new ArrayList<String>();
+    List<String> failedPropertyUids = new ArrayList<>();
 
     for (PmsProperty pmsProperty : pmsProperties) {
       try{
@@ -60,16 +57,16 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
         Property property = convertToSafelyProperty(organization, pmsProperty, images);
         pmsConvertedProperties.add(property);
       } catch(Exception e){
-        log.error("Failed to convert Property with Name {}", pmsProperty.getName());
-        failedPropertyNames.add(pmsProperty.getName());
-        errorCount++;
+        log.error("Failed to convert Property with Uid {}", pmsProperty.getUid());
+        failedPropertyUids.add(pmsProperty.getUid());
       }
     }
     jobContext.setPmsSafelyProperties(pmsConvertedProperties);
 
     stepStatistics.put(CONVERTED, pmsConvertedProperties.size());
     stepStatistics.put(ATTEMPTED, pmsProperties.size());
-    stepStatistics.put(FAILED, errorCount);
+    stepStatistics.put(FAILED, failedPropertyUids.size());
+    stepStatistics.put(FAILED_IDS, failedPropertyUids);
 
     jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
 

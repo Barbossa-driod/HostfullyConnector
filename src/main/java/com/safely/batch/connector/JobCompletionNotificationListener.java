@@ -72,6 +72,8 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
       }
     }
 
+    event.setJobStatistics(jobContext.getJobStatistics());
+
     try {
       eventsService.create(jobContext.getSafelyToken().getIdToken(), event);
     } catch (Exception ex) {
