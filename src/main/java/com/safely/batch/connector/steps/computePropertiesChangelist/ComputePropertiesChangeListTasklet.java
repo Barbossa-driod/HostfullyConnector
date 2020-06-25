@@ -27,10 +27,14 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
   @Autowired
   public JobContext jobContext;
 
+  private static final String UPDATED = "UPDATED";
+  private static final String CREATED = "CREATED";
+  private static final String DELETED = "DELETED";
+  private static final String STEP_NAME = "COMPUTE_PROPERTIES_CHANGE_LIST";
+
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
-
     Organization organization = jobContext.getOrganization();
 
     log.info("Processing properties to find changes for organization: {} - ({})",
@@ -41,6 +45,8 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
   }
 
   protected JobContext processProperties(JobContext jobContext) throws Exception {
+
+    HashMap<String, Object> stepStatistics = new HashMap<>();
 
     List<Property> safelyProperties = jobContext.getCurrentSafelyProperties();
     List<Property> pmsProperties = jobContext.getPmsSafelyProperties();
@@ -94,6 +100,11 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
     jobContext.setNewProperties(newProperties);
     jobContext.setUpdatedProperties(updatedProperties);
     jobContext.setRemovedProperties(removedProperties);
+
+    stepStatistics.put(CREATED, newProperties.size());
+    stepStatistics.put(UPDATED, updatedProperties.size());
+    stepStatistics.put(DELETED, removedProperties.size());
+    jobContext.getJobStatistics().put(STEP_NAME,stepStatistics);
 
     return jobContext;
   }
