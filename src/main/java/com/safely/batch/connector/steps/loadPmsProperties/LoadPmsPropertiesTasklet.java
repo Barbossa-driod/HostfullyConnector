@@ -4,6 +4,7 @@ import com.safely.api.domain.Organization;
 import com.safely.batch.connector.client.PropertiesService;
 import com.safely.batch.connector.pms.property.PmsProperty;
 import com.safely.batch.connector.steps.JobContext;
+import java.util.HashMap;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +24,14 @@ public class LoadPmsPropertiesTasklet implements Tasklet {
   @Autowired
   private PropertiesService propertyServices;
 
+  private static final String STEP_NAME= "LOAD_PROPERTIES";
+  private static final String LOADED = "LOADED";
+
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
+
+    HashMap<String, Object> stepStatistics = new HashMap<>();
 
     log.info("Loading properties from PMS");
 
@@ -35,6 +41,9 @@ public class LoadPmsPropertiesTasklet implements Tasklet {
     List<PmsProperty> properties = propertyServices.getProperties(apiKey, agencyUid);
 
     log.info("Loaded {} properties from PMS.", properties.size());
+
+    stepStatistics.put(LOADED, properties.size());
+    jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
 
     jobContext.setPmsProperties(properties);
 
