@@ -7,6 +7,8 @@ import com.safely.api.domain.Reservation;
 import com.safely.batch.connector.common.domain.safely.auth.JWTToken;
 import com.safely.batch.connector.pms.property.PmsProperty;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -55,6 +57,9 @@ public class JobContext {
     private List<Property> removedProperties;
 
     private String hostfullyApiKey;
+
+    private HashMap<String, HashMap<String, Object>> jobStatistics
+        = new HashMap<String, HashMap<String, Object>>();
 
     public String getAgencyUid() {
         return getOrganization().getOrganizationSourceCredentials().getCustomCredentialsData().get(AGENCY_UID);

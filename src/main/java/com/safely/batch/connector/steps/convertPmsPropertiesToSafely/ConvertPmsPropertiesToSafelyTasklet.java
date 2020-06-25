@@ -3,6 +3,7 @@ package com.safely.batch.connector.steps.convertPmsPropertiesToSafely;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.safely.api.domain.Organization;
@@ -31,32 +32,52 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
   @Autowired
   public JobContext jobContext;
 
+  private HashMap<String, Object> stepStatistics;
+
+  private static final String CONVERTED= "CONVERTED";
+  private static final String ATTEMPTED = "ATTEMPTED";
+  private static final String FAILED = "FAILED";
+  private static final String FAILED_NAMES = "FAILED_NAMES";
+  private static final String STEP_NAME = "CONVERT_PMS_PROPERTIES_TO_SAFELY_TASKET";
+
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
-
+    stepStatistics = new HashMap<String, Object>();
     Organization organization = jobContext.getOrganization();
 
     List<PmsProperty> pmsProperties = jobContext.getPmsProperties();
 
     List<Property> pmsConvertedProperties = new ArrayList<>();
 
+    int errorCount = 0;
+    List<String> failedPropertyNames = new ArrayList<String>();
+
     for (PmsProperty pmsProperty : pmsProperties) {
+      try{
+        List<PmsPropertyPhoto> images = pmsProperty.getPhotos();
 
-      List<PmsPropertyPhoto> images = pmsProperty.getPhotos();
-
-      Property property = convertToSafelyProperty(organization, pmsProperty, images);
-      pmsConvertedProperties.add(property);
+        Property property = convertToSafelyProperty(organization, pmsProperty, images);
+        pmsConvertedProperties.add(property);
+      } catch(Exception e){
+        log.error("Failed to convert Property with Name {}", pmsProperty.getName());
+        failedPropertyNames.add(pmsProperty.getName());
+        errorCount++;
+      }
     }
-
     jobContext.setPmsSafelyProperties(pmsConvertedProperties);
+
+    stepStatistics.put(CONVERTED, pmsConvertedProperties.size());
+    stepStatistics.put(ATTEMPTED, pmsProperties.size());
+    stepStatistics.put(FAILED, errorCount);
+
+    jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
 
     return RepeatStatus.FINISHED;
   }
 
   protected Property convertToSafelyProperty(Organization organization, PmsProperty pmsProperty,
       List<PmsPropertyPhoto> propertyImages) {
-
 
     Property safelyProperty = new Property();
     safelyProperty.setOrganizationId(organization.getEntityId());
