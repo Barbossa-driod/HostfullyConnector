@@ -32,11 +32,11 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
   @Autowired
   public JobContext jobContext;
 
-  private static final String CONVERTED= "CONVERTED";
-  private static final String PROCESSED = "PROCESSED";
-  private static final String FAILED = "FAILED";
-  private static final String FAILED_IDS = "FAILED_IDS";
-  private static final String STEP_NAME = "CONVERT_PMS_PROPERTIES_TO_SAFELY";
+  private static final String CONVERTED= "converted";
+  private static final String PROCESSED = "processed";
+  private static final String FAILED = "failed";
+  private static final String FAILED_IDS = "failed_ids";
+  private static final String STEP_NAME = "convert_pms_properties_to_safely";
 
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
