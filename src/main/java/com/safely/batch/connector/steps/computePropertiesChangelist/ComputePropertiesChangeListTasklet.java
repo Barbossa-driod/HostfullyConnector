@@ -27,10 +27,11 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
   @Autowired
   public JobContext jobContext;
 
-  private static final String UPDATED = "UPDATED";
-  private static final String CREATED = "CREATED";
-  private static final String DELETED = "DELETED";
-  private static final String STEP_NAME = "COMPUTE_PROPERTIES_CHANGE_LIST";
+  private static final String UPDATED = "updated";
+  private static final String CREATED = "created";
+  private static final String DELETED = "deleted";
+  private static final String PROCESSED = "processed";
+  private static final String STEP_NAME = "compute_properties_change_list";
 
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
@@ -104,6 +105,7 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
     stepStatistics.put(CREATED, newProperties.size());
     stepStatistics.put(UPDATED, updatedProperties.size());
     stepStatistics.put(DELETED, removedProperties.size());
+    stepStatistics.put(PROCESSED, pmsProperties.size());
     jobContext.getJobStatistics().put(STEP_NAME,stepStatistics);
 
     return jobContext;

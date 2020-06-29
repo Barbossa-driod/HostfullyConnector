@@ -24,8 +24,8 @@ public class LoadPmsPropertiesTasklet implements Tasklet {
   @Autowired
   private PropertiesService propertyServices;
 
-  private static final String STEP_NAME= "LOAD_PROPERTIES";
-  private static final String LOADED = "LOADED";
+  private static final String STEP_NAME= "load_properties";
+  private static final String LOADED = "loaded";
 
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)

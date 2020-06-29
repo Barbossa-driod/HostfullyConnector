@@ -24,8 +24,8 @@ public class LoadPmsReservationsTasklet implements Tasklet {
     @Autowired
     private ReservationsService reservationsService;
 
-    private static final String STEP_NAME= "LOAD_RESERVATION";
-    private static final String LOADED = "LOADED";
+    private static final String STEP_NAME= "load_reservations";
+    private static final String LOADED = "loaded";
 
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {

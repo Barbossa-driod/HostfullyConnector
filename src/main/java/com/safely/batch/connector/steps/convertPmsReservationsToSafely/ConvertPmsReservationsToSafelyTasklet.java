@@ -29,11 +29,11 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
   @Autowired
   public JobContext jobContext;
 
-  private static final String CONVERTED= "CONVERTED";
-  private static final String ATTEMPTED = "ATTEMPTED";
-  private static final String FAILED = "FAILED";
-  private static final String FAILED_IDS = "FAILED_IDS";
-  private static final String STEP_NAME = "CONVERT_PMS_RESERVATIONS_TO_SAFELY";
+  private static final String CONVERTED= "converted";
+  private static final String PROCESSED = "processed";
+  private static final String FAILED = "failed";
+  private static final String FAILED_IDS = "failed_ids";
+  private static final String STEP_NAME = "convert_pms_reservations_to_safely";
 
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
@@ -62,7 +62,7 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
     jobContext.setPmsSafelyReservations(pmsConvertedReservations);
 
     stepStatistics.put(CONVERTED, pmsConvertedReservations.size());
-    stepStatistics.put(ATTEMPTED, pmsReservations.size());
+    stepStatistics.put(PROCESSED, pmsReservations.size());
     stepStatistics.put(FAILED, failedReservationUids.size());
     stepStatistics.put(FAILED_IDS, failedReservationUids);
     jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);

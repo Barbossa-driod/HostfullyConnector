@@ -26,11 +26,12 @@ public class SaveReservationsToSafelyTasklet implements Tasklet {
   @Autowired
   private SafelyConnectorReservationsService reservationsService;
 
-  private static final String UPDATED = "UPDATED";
-  private static final String CREATED = "CREATED";
-  private static final String FAILED = "FAILED";
-  private static final String FAILED_IDS = "FAILED_IDS";
-  private static final String STEP_NAME = "SAVE_RESERVATIONS_TO_SAFELY";
+  private static final String UPDATED = "updated";
+  private static final String CREATED = "created";
+  private static final String FAILED = "failed";
+  private static final String PROCESSED = "processed";
+  private static final String FAILED_IDS = "failed_ids";
+  private static final String STEP_NAME = "save_reservations_to_safely";
 
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
@@ -76,6 +77,7 @@ public class SaveReservationsToSafelyTasklet implements Tasklet {
     stepStatistics.put(CREATED, successfullyCreated);
     stepStatistics.put(UPDATED, successfullyUpdated);
     stepStatistics.put(FAILED, failedIds.size());
+    stepStatistics.put(PROCESSED, newReservations.size() + updatedReservations.size());
     stepStatistics.put(FAILED_IDS, failedIds);
 
     jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);

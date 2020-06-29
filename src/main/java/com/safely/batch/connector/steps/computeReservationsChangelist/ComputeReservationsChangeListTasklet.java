@@ -27,10 +27,10 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
   @Autowired
   public JobContext jobContext;
 
-  private static final String UPDATED = "UPDATED";
-  private static final String CREATED = "CREATED";
-  private static final String DELETED = "DELETED";
-  private static final String STEP_NAME = "COMPUTE_RESERVATIONS_CHANGE_LIST";
+  private static final String UPDATED = "updated";
+  private static final String CREATED = "created";
+  private static final String PROCESSED = "processed";
+  private static final String STEP_NAME = "compute_reservations_change_list";
 
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
@@ -93,6 +93,8 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
 
     stepStatistics.put(CREATED, newReservations.size());
     stepStatistics.put(UPDATED, updatedReservations.size());
+    stepStatistics.put(PROCESSED, pmsReservations.size());
+    jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
 
     return jobContext;
   }

@@ -33,7 +33,7 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
   public JobContext jobContext;
 
   private static final String CONVERTED= "CONVERTED";
-  private static final String ATTEMPTED = "ATTEMPTED";
+  private static final String PROCESSED = "PROCESSED";
   private static final String FAILED = "FAILED";
   private static final String FAILED_IDS = "FAILED_IDS";
   private static final String STEP_NAME = "CONVERT_PMS_PROPERTIES_TO_SAFELY";
@@ -64,7 +64,7 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     jobContext.setPmsSafelyProperties(pmsConvertedProperties);
 
     stepStatistics.put(CONVERTED, pmsConvertedProperties.size());
-    stepStatistics.put(ATTEMPTED, pmsProperties.size());
+    stepStatistics.put(PROCESSED, pmsProperties.size());
     stepStatistics.put(FAILED, failedPropertyUids.size());
     stepStatistics.put(FAILED_IDS, failedPropertyUids);
 
