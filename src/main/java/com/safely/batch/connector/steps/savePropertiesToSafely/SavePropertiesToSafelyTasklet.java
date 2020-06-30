@@ -76,7 +76,7 @@ public class SavePropertiesToSafelyTasklet implements Tasklet {
       stepStatistics.put(UPDATED, updatedSuccessfully);
       stepStatistics.put(FAILED, FAILED_IDS.length());
       stepStatistics.put(PROCESSED, newProperties.size() + updatedProperties.size());
-      stepStatistics.put(FAILED_IDS, FAILED_IDS);
+      stepStatistics.put(FAILED_IDS, failedIds);
 
       jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
     }
