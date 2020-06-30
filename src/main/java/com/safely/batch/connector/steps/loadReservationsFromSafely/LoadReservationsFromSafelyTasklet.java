@@ -5,6 +5,7 @@ import com.safely.api.domain.Reservation;
 import com.safely.batch.connector.common.domain.safely.auth.JWTToken;
 import com.safely.batch.connector.common.services.safely.SafelyConnectorReservationsService;
 import com.safely.batch.connector.steps.JobContext;
+import java.util.HashMap;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +26,14 @@ public class LoadReservationsFromSafelyTasklet implements Tasklet {
   @Autowired
   private SafelyConnectorReservationsService reservationsService;
 
+  private static final String STEP_NAME = "LOAD_RESERVATIONS_FROM_SAFELY";
+  private static final String LOADED = "loaded";
+
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
+
+    HashMap<String, Object> stepStatistics = new HashMap<>();
 
     Organization organization = jobContext.getOrganization();
     JWTToken token = jobContext.getSafelyToken();
@@ -39,6 +45,9 @@ public class LoadReservationsFromSafelyTasklet implements Tasklet {
         currentSafelyReservations.size(), organization.getName(), organization.getEntityId(),
         organization.getLegacyOrganizationId());
     jobContext.setCurrentSafelyReservations(currentSafelyReservations);
+
+    stepStatistics.put(LOADED, currentSafelyReservations.size());
+    jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
 
     return RepeatStatus.FINISHED;
   }

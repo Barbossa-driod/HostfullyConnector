@@ -5,7 +5,9 @@ import com.safely.api.domain.Property;
 import com.safely.batch.connector.common.domain.safely.auth.JWTToken;
 import com.safely.batch.connector.common.services.safely.SafelyConnectorPropertiesService;
 import com.safely.batch.connector.steps.JobContext;
+import java.util.HashMap;
 import java.util.List;
+import org.omg.CORBA.OBJECT_NOT_EXIST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -24,9 +26,13 @@ public class LoadPropertiesFromSafelyTasklet implements Tasklet {
   @Autowired
   private SafelyConnectorPropertiesService propertiesService;
 
+  private static final String STEP_NAME = "LOAD_PROPERTIES_FROM_SAFELY";
+  private static final String LOADED = "loaded";
+
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
+    HashMap<String, Object> stepStatistics = new HashMap<>();
 
     Organization organization = jobContext.getOrganization();
     JWTToken token = jobContext.getSafelyToken();
@@ -38,6 +44,9 @@ public class LoadPropertiesFromSafelyTasklet implements Tasklet {
         organization.getLegacyOrganizationId());
 
     jobContext.setCurrentSafelyProperties(currentSafelyProperties);
+
+    stepStatistics.put(LOADED, currentSafelyProperties.size());
+    jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
 
     return RepeatStatus.FINISHED;
   }
