@@ -40,7 +40,16 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
 
     log.info("Processing properties to find changes for organization: {} - ({})",
         organization.getName(), organization.getEntityId());
-    processProperties(jobContext);
+    try {
+      processProperties(jobContext);
+    } catch(Exception e) {
+      String message = String.format("Failed to compute properties change list for organization %s",
+          organization.getEntityId());
+      log.error(message);
+      Exception wrapperException = new Exception(message, e);
+      chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
+    }
+
 
     return RepeatStatus.FINISHED;
   }

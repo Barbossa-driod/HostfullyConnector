@@ -15,6 +15,7 @@ import com.safely.api.domain.enumeration.PropertyType;
 import com.safely.batch.connector.pms.property.PmsProperty;
 import com.safely.batch.connector.pms.property.PmsPropertyPhoto;
 import com.safely.batch.connector.steps.JobContext;
+import org.checkerframework.checker.formatter.FormatUtil.ExcessiveOrMissingFormatArgumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -57,8 +58,12 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
         Property property = convertToSafelyProperty(organization, pmsProperty, images);
         pmsConvertedProperties.add(property);
       } catch(Exception e){
-        log.error("Failed to convert Property with Uid {}", pmsProperty.getUid());
+        String message = String
+            .format("Failed to convert property with Uid %s", pmsProperty.getUid());
+        log.error(message);
         failedPropertyUids.add(pmsProperty.getUid());
+        Exception wrapperException = new Exception(message, e);
+        chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
       }
     }
     jobContext.setPmsSafelyProperties(pmsConvertedProperties);
@@ -90,6 +95,8 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     // only using full baths for current calculation
     safelyProperty.setBathRooms(pmsProperty.getBathrooms());
     safelyProperty.setBedRooms(String.valueOf(pmsProperty.getBedrooms()));
+
+    int test = 4/0;
 
     //Address
     safelyProperty.setStreetLine1(pmsProperty.getAddress1());

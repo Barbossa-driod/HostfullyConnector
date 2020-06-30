@@ -55,8 +55,12 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
         Reservation reservation = convertToSafelyReservation(organization, pmsReservation);
         pmsConvertedReservations.add(reservation);
       } catch(Exception e) {
-        log.error("Failed to convert Reservation with Uid {}", pmsReservation.getUid());
+        String message = String
+            .format("Failed to convert reservation with Uid %s", pmsReservation.getUid());
+        log.error(message);
         failedReservationUids.add(pmsReservation.getUid());
+        Exception wrapperExecution = new Exception(message, e);
+        chunkContext.getStepContext().getStepExecution().addFailureException(wrapperExecution);
       }
     }
 

@@ -40,7 +40,16 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
 
     log.info("Processing reservations to find changes for organization: {} - ({})",
         organization.getName(), organization.getId());
-    processReservations(jobContext);
+    try{
+      processReservations(jobContext);
+    } catch(Exception e){
+      String message = String.format("Failed to compute reservations for organization %s",
+          jobContext.getOrganization().getEntityId());
+      log.error(message);
+      Exception wrapperException = new Exception(message, e);
+      chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
+    }
+
 
     return RepeatStatus.FINISHED;
   }
