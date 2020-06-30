@@ -7,7 +7,6 @@ import com.safely.batch.connector.common.services.safely.SafelyConnectorProperti
 import com.safely.batch.connector.steps.JobContext;
 import java.util.HashMap;
 import java.util.List;
-import org.omg.CORBA.OBJECT_NOT_EXIST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
