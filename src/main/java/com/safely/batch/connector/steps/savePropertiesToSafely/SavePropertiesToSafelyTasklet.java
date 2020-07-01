@@ -72,14 +72,14 @@ public class SavePropertiesToSafelyTasklet implements Tasklet {
             property.getReferenceId());
         failedIds.add(property.getReferenceId());
       }
-      stepStatistics.put(CREATED, successfullyCreated);
-      stepStatistics.put(UPDATED, updatedSuccessfully);
-      stepStatistics.put(FAILED, FAILED_IDS.length());
-      stepStatistics.put(PROCESSED, newProperties.size() + updatedProperties.size());
-      stepStatistics.put(FAILED_IDS, failedIds);
-
-      jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
     }
+    stepStatistics.put(CREATED, successfullyCreated);
+    stepStatistics.put(UPDATED, updatedSuccessfully);
+    stepStatistics.put(FAILED, FAILED_IDS.length());
+    stepStatistics.put(PROCESSED, newProperties.size() + updatedProperties.size());
+    stepStatistics.put(FAILED_IDS, failedIds);
+
+    jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
     return RepeatStatus.FINISHED;
   }
 }
