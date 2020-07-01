@@ -26,7 +26,7 @@ public class LoadReservationsFromSafelyTasklet implements Tasklet {
   @Autowired
   private SafelyConnectorReservationsService reservationsService;
 
-  private static final String STEP_NAME = "LOAD_RESERVATIONS_FROM_SAFELY";
+  private static final String STEP_NAME = "load_reservations_from_safely";
   private static final String LOADED = "loaded";
 
   @Override
