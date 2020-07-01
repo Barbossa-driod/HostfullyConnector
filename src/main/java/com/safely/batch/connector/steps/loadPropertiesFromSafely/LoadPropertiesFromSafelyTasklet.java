@@ -25,7 +25,7 @@ public class LoadPropertiesFromSafelyTasklet implements Tasklet {
   @Autowired
   private SafelyConnectorPropertiesService propertiesService;
 
-  private static final String STEP_NAME = "LOAD_PROPERTIES_FROM_SAFELY";
+  private static final String STEP_NAME = "load_properties_from_safely";
   private static final String LOADED = "loaded";
 
   @Override
