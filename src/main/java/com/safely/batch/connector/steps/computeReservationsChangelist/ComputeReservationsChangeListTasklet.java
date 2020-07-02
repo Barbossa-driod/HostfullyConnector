@@ -40,21 +40,12 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
 
     log.info("Processing reservations to find changes for organization: {} - ({})",
         organization.getName(), organization.getId());
-    try{
-      processReservations(jobContext);
-    } catch(Exception e){
-      String message = String.format("Failed to compute reservations for organization %s",
-          jobContext.getOrganization().getEntityId());
-      log.error(message);
-      Exception wrapperException = new Exception(message, e);
-      chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
-    }
-
-
+    processReservations(jobContext, chunkContext);
     return RepeatStatus.FINISHED;
   }
 
-  protected JobContext processReservations(JobContext jobContext) throws Exception {
+  protected JobContext processReservations(JobContext jobContext, ChunkContext chunkContext)
+      throws Exception {
 
     HashMap<String, Object> stepStatistics = new HashMap<>();
 
@@ -78,22 +69,31 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
     List<Reservation> updatedReservations = new ArrayList<>();
 
     for (Reservation pmsReservation : pmsReservations) {
-      Reservation safelyReservation = safelyReservationLookup.get(pmsReservation.getReferenceId());
+      try {
+        Reservation safelyReservation = safelyReservationLookup.get(pmsReservation.getReferenceId());
 
-      //we could possibly use the modified date as well
-      if (safelyReservation == null) {
-        newReservations.add(pmsReservation);
-      }
-      //use either hashcode or Modified date to detect changes in a reservation
-      else if (safelyReservation.getLastModifiedDate() != null && !safelyReservation
-          .getLastModifiedDate().equals(pmsReservation.getLastModifiedDate())){
+        //we could possibly use the modified date as well
+        if (safelyReservation == null) {
+          newReservations.add(pmsReservation);
+        }
+        //use either hashcode or Modified date to detect changes in a reservation
+        else if (safelyReservation.getLastModifiedDate() != null && !safelyReservation
+            .getLastModifiedDate().equals(pmsReservation.getLastModifiedDate())){
           updateReservation(safelyReservation, pmsReservation);
           updatedReservations.add(safelyReservation);
-      } else if (!safelyReservation.getPmsObjectHashcode()
-          .equals(pmsReservation.getPmsObjectHashcode())) {
-        updateReservation(pmsReservation, safelyReservation);
-        updatedReservations.add(safelyReservation);
+        } else if (!safelyReservation.getPmsObjectHashcode()
+            .equals(pmsReservation.getPmsObjectHashcode())) {
+          updateReservation(pmsReservation, safelyReservation);
+          updatedReservations.add(safelyReservation);
+        }
+      } catch (Exception e){
+        String message = String.format("Failed to compute changes for property with referenceId %s",
+            pmsReservation.getReferenceId());
+        log.error(message);
+        Exception wrapperException = new Exception(message, e);
+        chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
       }
+
     }
     // we could add some logic around deleted reservations but I do not see this in MyVR or Lightmaker
 

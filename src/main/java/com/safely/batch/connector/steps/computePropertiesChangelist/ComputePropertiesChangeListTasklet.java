@@ -40,21 +40,13 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
 
     log.info("Processing properties to find changes for organization: {} - ({})",
         organization.getName(), organization.getEntityId());
-    try {
-      processProperties(jobContext);
-    } catch(Exception e) {
-      String message = String.format("Failed to compute properties change list for organization %s",
-          organization.getEntityId());
-      log.error(message);
-      Exception wrapperException = new Exception(message, e);
-      chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
-    }
 
+    processProperties(jobContext, chunkContext);
 
     return RepeatStatus.FINISHED;
   }
 
-  protected JobContext processProperties(JobContext jobContext) throws Exception {
+  protected JobContext processProperties(JobContext jobContext, ChunkContext chunkContext) throws Exception {
 
     HashMap<String, Object> stepStatistics = new HashMap<>();
 
@@ -78,19 +70,29 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
     List<Property> updatedProperties = new ArrayList<>();
 
     for (Property pmsProperty : pmsProperties) {
-      Property safelyProperty = safelyPropertyLookup.get(pmsProperty.getReferenceId());
+      try {
+        Property safelyProperty = safelyPropertyLookup.get(pmsProperty.getReferenceId());
 
-      // if the current PMS property does not exist in the Safely list, it is new
-      if (safelyProperty == null) {
-        newProperties.add(pmsProperty);
-      } else {
-        // pmsObjectHashcode to check for changes
-        if (!safelyProperty.getPmsObjectHashcode()
-            .equals(pmsProperty.getPmsObjectHashcode())) {
-          updateProperty(safelyProperty, pmsProperty);
-          updatedProperties.add(safelyProperty);
+        // if the current PMS property does not exist in the Safely list, it is new
+        if (safelyProperty == null) {
+          newProperties.add(pmsProperty);
+        } else {
+          // pmsObjectHashcode to check for changes
+          if (!safelyProperty.getPmsObjectHashcode()
+              .equals(pmsProperty.getPmsObjectHashcode())) {
+            updateProperty(safelyProperty, pmsProperty);
+            updatedProperties.add(safelyProperty);
+          }
         }
+      } catch (Exception e) {
+        String message = String
+            .format("failed to compute changes for PMS property with referenceId %s",
+                pmsProperty.getReferenceId());
+        log.error(message);
+        Exception wrapperException = new Exception(message, e);
+        chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
       }
+
     }
 
     //Find all deleted Properties.
