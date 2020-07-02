@@ -87,13 +87,13 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
           updatedReservations.add(safelyReservation);
         }
       } catch (Exception e){
-        String message = String.format("Failed to compute changes for reservation with referenceId %s",
-            pmsReservation.getReferenceId());
+        String message = String
+            .format("Failed to compute changes for reservation with referenceId %s",
+                pmsReservation.getReferenceId());
         log.error(message);
         Exception wrapperException = new Exception(message, e);
         chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
       }
-
     }
     // we could add some logic around deleted reservations but I do not see this in MyVR or Lightmaker
 

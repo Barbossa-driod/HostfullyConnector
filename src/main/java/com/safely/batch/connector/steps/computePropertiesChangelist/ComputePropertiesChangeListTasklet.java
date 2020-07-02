@@ -2,10 +2,8 @@ package com.safely.batch.connector.steps.computePropertiesChangelist;
 
 import com.safely.api.domain.Organization;
 import com.safely.api.domain.Property;
-import com.safely.api.domain.enumeration.ConnectorOperationMode;
 import com.safely.api.domain.enumeration.PropertyStatus;
 import com.safely.batch.connector.steps.JobContext;
-import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -13,7 +11,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
