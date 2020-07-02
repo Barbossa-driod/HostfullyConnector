@@ -98,15 +98,25 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
     //Find all deleted Properties.
     List<Property> removedProperties = new ArrayList<>();
     for (Property safelyProperty : safelyProperties) {
-      Property pmsProperty = pmsPropertyLookup.get(safelyProperty.getReferenceId());
+      try{
+        Property pmsProperty = pmsPropertyLookup.get(safelyProperty.getReferenceId());
 
-      //I do not think we need to implement any logic here.
+        //I do not think we need to implement any logic here.
 
-      // if we don't see the property in the data pull from PMS, then we will mark the property with PMS Status inactive
-      if (pmsProperty == null) {
-        safelyProperty.setPmsStatus(PropertyStatus.INACTIVE);
-        updatedProperties.add(safelyProperty);
+        // if we don't see the property in the data pull from PMS, then we will mark the property with PMS Status inactive
+        if (pmsProperty == null) {
+          safelyProperty.setPmsStatus(PropertyStatus.INACTIVE);
+          updatedProperties.add(safelyProperty);
+        }
+      } catch(Exception e) {
+        String message = String
+            .format("Failed to compute if property with referenceId %s has been deleted",
+                safelyProperty.getReferenceId());
+        log.error(message);
+        Exception wrapperException = new Exception();
+        chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
       }
+
     }
 
     jobContext.setNewProperties(newProperties);
