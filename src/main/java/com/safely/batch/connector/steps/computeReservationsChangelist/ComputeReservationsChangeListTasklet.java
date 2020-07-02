@@ -87,7 +87,7 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
           updatedReservations.add(safelyReservation);
         }
       } catch (Exception e){
-        String message = String.format("Failed to compute changes for property with referenceId %s",
+        String message = String.format("Failed to compute changes for reservation with referenceId %s",
             pmsReservation.getReferenceId());
         log.error(message);
         Exception wrapperException = new Exception(message, e);
