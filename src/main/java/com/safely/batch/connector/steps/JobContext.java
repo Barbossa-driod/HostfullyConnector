@@ -58,7 +58,7 @@ public class JobContext {
 
     private String hostfullyApiKey;
 
-    private HashMap<String, HashMap<String, Object>> jobStatistics
+    private Map<String, HashMap<String, Object>> jobStatistics
         = new HashMap<String, HashMap<String, Object>>();
 
     public String getAgencyUid() {
