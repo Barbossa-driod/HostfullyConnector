@@ -15,7 +15,6 @@ import com.safely.api.domain.enumeration.PropertyType;
 import com.safely.batch.connector.pms.property.PmsProperty;
 import com.safely.batch.connector.pms.property.PmsPropertyPhoto;
 import com.safely.batch.connector.steps.JobContext;
-import org.checkerframework.checker.formatter.FormatUtil.ExcessiveOrMissingFormatArgumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
