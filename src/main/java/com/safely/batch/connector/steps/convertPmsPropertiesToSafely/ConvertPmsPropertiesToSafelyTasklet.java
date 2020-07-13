@@ -1,10 +1,5 @@
 package com.safely.batch.connector.steps.convertPmsPropertiesToSafely;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import com.safely.api.domain.Organization;
 import com.safely.api.domain.Property;
 import com.safely.api.domain.PropertyPhoto;
@@ -14,6 +9,12 @@ import com.safely.api.domain.enumeration.PropertyType;
 import com.safely.batch.connector.pms.property.PmsProperty;
 import com.safely.batch.connector.pms.property.PmsPropertyPhoto;
 import com.safely.batch.connector.steps.JobContext;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -31,32 +32,53 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
   @Autowired
   public JobContext jobContext;
 
+  private static final String CONVERTED= "converted";
+  private static final String PROCESSED = "processed";
+  private static final String FAILED = "failed";
+  private static final String FAILED_IDS = "failed_ids";
+  private static final String STEP_NAME = "convert_pms_properties_to_safely";
+
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
-
+    Map<String, Object> stepStatistics = new HashMap<>();
     Organization organization = jobContext.getOrganization();
 
     List<PmsProperty> pmsProperties = jobContext.getPmsProperties();
 
     List<Property> pmsConvertedProperties = new ArrayList<>();
 
+    List<String> failedPropertyUids = new ArrayList<>();
+
     for (PmsProperty pmsProperty : pmsProperties) {
+      try{
+        List<PmsPropertyPhoto> images = pmsProperty.getPhotos();
 
-      List<PmsPropertyPhoto> images = pmsProperty.getPhotos();
-
-      Property property = convertToSafelyProperty(organization, pmsProperty, images);
-      pmsConvertedProperties.add(property);
+        Property property = convertToSafelyProperty(organization, pmsProperty, images);
+        pmsConvertedProperties.add(property);
+      } catch(Exception e){
+        String message = String
+            .format("Failed to convert property with Uid %s", pmsProperty.getUid());
+        log.error(message);
+        failedPropertyUids.add(pmsProperty.getUid());
+        Exception wrapperException = new Exception(message, e);
+        chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
+      }
     }
-
     jobContext.setPmsSafelyProperties(pmsConvertedProperties);
+
+    stepStatistics.put(CONVERTED, pmsConvertedProperties.size());
+    stepStatistics.put(PROCESSED, pmsProperties.size());
+    stepStatistics.put(FAILED, failedPropertyUids.size());
+    stepStatistics.put(FAILED_IDS, failedPropertyUids);
+
+    jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
 
     return RepeatStatus.FINISHED;
   }
 
   protected Property convertToSafelyProperty(Organization organization, PmsProperty pmsProperty,
       List<PmsPropertyPhoto> propertyImages) {
-
 
     Property safelyProperty = new Property();
     safelyProperty.setOrganizationId(organization.getEntityId());

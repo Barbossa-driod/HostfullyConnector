@@ -1,10 +1,11 @@
 package com.safely.batch.connector.steps.loadPmsProperties;
 
-import com.safely.api.domain.Organization;
 import com.safely.batch.connector.client.PropertiesService;
 import com.safely.batch.connector.pms.property.PmsProperty;
 import com.safely.batch.connector.steps.JobContext;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -23,9 +24,14 @@ public class LoadPmsPropertiesTasklet implements Tasklet {
   @Autowired
   private PropertiesService propertyServices;
 
+  private static final String STEP_NAME= "load_properties";
+  private static final String LOADED = "loaded";
+
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
+
+    Map<String, Object> stepStatistics = new HashMap<>();
 
     log.info("Loading properties from PMS");
 
@@ -35,6 +41,9 @@ public class LoadPmsPropertiesTasklet implements Tasklet {
     List<PmsProperty> properties = propertyServices.getProperties(apiKey, agencyUid);
 
     log.info("Loaded {} properties from PMS.", properties.size());
+
+    stepStatistics.put(LOADED, properties.size());
+    jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
 
     jobContext.setPmsProperties(properties);
 

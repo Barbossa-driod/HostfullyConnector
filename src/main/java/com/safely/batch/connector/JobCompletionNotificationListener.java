@@ -59,18 +59,30 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 
     if (BatchStatus.COMPLETED.equals(jobExecution.getStatus())) {
       event.setSeverity(EventSeverity.INFO);
-      event.setDescription("Job completed successfully.");
+      List<Throwable> allExceptions = jobExecution.getAllFailureExceptions();
+      if (allExceptions != null && allExceptions.size() > 0) {
+        for(Throwable exception: allExceptions) {
+          event.getExceptionMessages().add(exception.getMessage());
+        }
+        event.setDescription("Completed with non-terminal exceptions");
+      } else {
+        event.setDescription("Job completed successfully.");
+      }
     } else {
       event.setSeverity(EventSeverity.ERROR);
-
       List<Throwable> failureExceptions = jobExecution.getFailureExceptions();
-      if (failureExceptions != null && !failureExceptions.isEmpty()) {
-        Throwable failureException = failureExceptions.get(0);
-        event.setDescription(failureException.getMessage());
-      } else if (jobExecution.getExitStatus() != null) {
+      if (failureExceptions != null && failureExceptions.size() > 0) {
+        for (Throwable exception : failureExceptions) {
+          event.getExceptionMessages().add(exception.getMessage());
+
+        }
+        event.setDescription("Completed with both terminal and non-terminal errors");
+      } else {
         event.setDescription(jobExecution.getExitStatus().toString());
       }
     }
+
+    event.setJobStatistics(jobContext.getJobStatistics());
 
     try {
       eventsService.create(jobContext.getSafelyToken().getIdToken(), event);

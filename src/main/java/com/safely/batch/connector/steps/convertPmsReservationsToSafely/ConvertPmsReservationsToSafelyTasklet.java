@@ -1,11 +1,25 @@
 package com.safely.batch.connector.steps.convertPmsReservationsToSafely;
 
-import com.safely.api.domain.*;
-import com.safely.api.domain.enumeration.*;
+import com.safely.api.domain.Guest;
+import com.safely.api.domain.GuestAddress;
+import com.safely.api.domain.GuestEmail;
+import com.safely.api.domain.GuestPhone;
+import com.safely.api.domain.Organization;
+import com.safely.api.domain.Reservation;
+import com.safely.api.domain.enumeration.AddressType;
+import com.safely.api.domain.enumeration.BookingChannelType;
+import com.safely.api.domain.enumeration.PhoneType;
+import com.safely.api.domain.enumeration.ReservationStatus;
+import com.safely.api.domain.enumeration.ReservationType;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
 import com.safely.batch.connector.steps.JobContext;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -13,12 +27,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
 
@@ -28,21 +36,48 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
   @Autowired
   public JobContext jobContext;
 
+
+  private static final String CONVERTED= "converted";
+  private static final String PROCESSED = "processed";
+  private static final String FAILED = "failed";
+  private static final String FAILED_IDS = "failed_ids";
+  private static final String STEP_NAME = "convert_pms_reservations_to_safely";
+
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
+
+    Map<String, Object> stepStatistics = new HashMap<>();
 
     Organization organization = jobContext.getOrganization();
 
     List<PmsReservation> pmsReservations = jobContext.getPmsReservations();
 
     List<Reservation> pmsConvertedReservations = new ArrayList<>();
+
+    List<String> failedReservationUids = new ArrayList<>();
+
     for (PmsReservation pmsReservation : pmsReservations) {
-      Reservation reservation = convertToSafelyReservation(organization, pmsReservation);
-      pmsConvertedReservations.add(reservation);
+      try {
+        Reservation reservation = convertToSafelyReservation(organization, pmsReservation);
+        pmsConvertedReservations.add(reservation);
+      } catch(Exception e) {
+        String message = String
+            .format("Failed to convert reservation with Uid %s", pmsReservation.getUid());
+        log.error(message);
+        failedReservationUids.add(pmsReservation.getUid());
+        Exception wrapperExecution = new Exception(message, e);
+        chunkContext.getStepContext().getStepExecution().addFailureException(wrapperExecution);
+      }
     }
 
     jobContext.setPmsSafelyReservations(pmsConvertedReservations);
+
+    stepStatistics.put(CONVERTED, pmsConvertedReservations.size());
+    stepStatistics.put(PROCESSED, pmsReservations.size());
+    stepStatistics.put(FAILED, failedReservationUids.size());
+    stepStatistics.put(FAILED_IDS, failedReservationUids);
+    jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
 
     return RepeatStatus.FINISHED;
   }

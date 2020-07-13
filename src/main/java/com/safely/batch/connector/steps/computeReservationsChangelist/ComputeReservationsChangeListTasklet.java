@@ -2,10 +2,12 @@ package com.safely.batch.connector.steps.computeReservationsChangelist;
 
 import com.safely.api.domain.Organization;
 import com.safely.api.domain.Reservation;
-import com.safely.api.domain.enumeration.ConnectorOperationMode;
-import com.safely.batch.connector.pms.reservation.PmsReservation;
 import com.safely.batch.connector.steps.JobContext;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -13,11 +15,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class ComputeReservationsChangeListTasklet implements Tasklet {
 
@@ -27,6 +24,11 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
   @Autowired
   public JobContext jobContext;
 
+  private static final String UPDATED = "updated";
+  private static final String CREATED = "created";
+  private static final String PROCESSED = "processed";
+  private static final String STEP_NAME = "compute_reservations_change_list";
+
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
@@ -35,12 +37,15 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
 
     log.info("Processing reservations to find changes for organization: {} - ({})",
         organization.getName(), organization.getId());
-    processReservations(jobContext);
-
+    processReservations(jobContext, chunkContext);
     return RepeatStatus.FINISHED;
   }
 
-  protected JobContext processReservations(JobContext jobContext) throws Exception {
+  protected JobContext processReservations(JobContext jobContext, ChunkContext chunkContext)
+      throws Exception {
+
+    Map<String, Object> stepStatistics = new HashMap<>();
+
     List<Reservation> safelyReservations = jobContext.getCurrentSafelyReservations();
     List<Reservation> pmsReservations = jobContext.getPmsSafelyReservations();
 
@@ -61,27 +66,41 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
     List<Reservation> updatedReservations = new ArrayList<>();
 
     for (Reservation pmsReservation : pmsReservations) {
-      Reservation safelyReservation = safelyReservationLookup.get(pmsReservation.getReferenceId());
+      try {
+        Reservation safelyReservation = safelyReservationLookup.get(pmsReservation.getReferenceId());
 
-      //we could possibly use the modified date as well
-      if (safelyReservation == null) {
-        newReservations.add(pmsReservation);
-      }
-      //use either hashcode or Modified date to detect changes in a reservation
-      else if (safelyReservation.getLastModifiedDate() != null && !safelyReservation
-          .getLastModifiedDate().equals(pmsReservation.getLastModifiedDate())){
+        //we could possibly use the modified date as well
+        if (safelyReservation == null) {
+          newReservations.add(pmsReservation);
+        }
+        //use either hashcode or Modified date to detect changes in a reservation
+        else if (safelyReservation.getLastModifiedDate() != null && !safelyReservation
+            .getLastModifiedDate().equals(pmsReservation.getLastModifiedDate())){
           updateReservation(safelyReservation, pmsReservation);
           updatedReservations.add(safelyReservation);
-      } else if (!safelyReservation.getPmsObjectHashcode()
-          .equals(pmsReservation.getPmsObjectHashcode())) {
-        updateReservation(pmsReservation, safelyReservation);
-        updatedReservations.add(safelyReservation);
+        } else if (!safelyReservation.getPmsObjectHashcode()
+            .equals(pmsReservation.getPmsObjectHashcode())) {
+          updateReservation(pmsReservation, safelyReservation);
+          updatedReservations.add(safelyReservation);
+        }
+      } catch (Exception e){
+        String message = String
+            .format("Failed to compute changes for reservation with referenceId %s",
+                pmsReservation.getReferenceId());
+        log.error(message);
+        Exception wrapperException = new Exception(message, e);
+        chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
       }
     }
     // we could add some logic around deleted reservations but I do not see this in MyVR or Lightmaker
 
     jobContext.setNewReservations(newReservations);
     jobContext.setUpdatedReservations(updatedReservations);
+
+    stepStatistics.put(CREATED, newReservations.size());
+    stepStatistics.put(UPDATED, updatedReservations.size());
+    stepStatistics.put(PROCESSED, pmsReservations.size());
+    jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
 
     return jobContext;
   }
