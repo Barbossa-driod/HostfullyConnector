@@ -58,8 +58,8 @@ public class JobContext {
 
     private String hostfullyApiKey;
 
-    private Map<String, HashMap<String, Object>> jobStatistics
-        = new HashMap<String, HashMap<String, Object>>();
+    private Map<String, Map<String, Object>> jobStatistics
+        = new HashMap<String, Map<String, Object>>();
 
     public String getAgencyUid() {
         return getOrganization().getOrganizationSourceCredentials().getCustomCredentialsData().get(AGENCY_UID);

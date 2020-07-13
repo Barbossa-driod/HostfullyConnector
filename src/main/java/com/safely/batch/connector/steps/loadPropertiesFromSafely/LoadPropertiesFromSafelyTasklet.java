@@ -7,6 +7,7 @@ import com.safely.batch.connector.common.services.safely.SafelyConnectorProperti
 import com.safely.batch.connector.steps.JobContext;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -31,7 +32,7 @@ public class LoadPropertiesFromSafelyTasklet implements Tasklet {
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
-    HashMap<String, Object> stepStatistics = new HashMap<>();
+    Map<String, Object> stepStatistics = new HashMap<>();
 
     Organization organization = jobContext.getOrganization();
     JWTToken token = jobContext.getSafelyToken();

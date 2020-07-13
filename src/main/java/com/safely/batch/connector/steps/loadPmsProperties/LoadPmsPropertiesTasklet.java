@@ -6,6 +6,7 @@ import com.safely.batch.connector.pms.property.PmsProperty;
 import com.safely.batch.connector.steps.JobContext;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -31,7 +32,7 @@ public class LoadPmsPropertiesTasklet implements Tasklet {
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
 
-    HashMap<String, Object> stepStatistics = new HashMap<>();
+    Map<String, Object> stepStatistics = new HashMap<>();
 
     log.info("Loading properties from PMS");
 

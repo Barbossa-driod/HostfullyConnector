@@ -45,7 +45,7 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
 
   protected JobContext processProperties(JobContext jobContext, ChunkContext chunkContext) throws Exception {
 
-    HashMap<String, Object> stepStatistics = new HashMap<>();
+    Map<String, Object> stepStatistics = new HashMap<>();
 
     List<Property> safelyProperties = jobContext.getCurrentSafelyProperties();
     List<Property> pmsProperties = jobContext.getPmsSafelyProperties();
@@ -92,8 +92,9 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
 
     }
 
+    int successfullyDeleted = 0;
+
     //Find all deleted Properties.
-    List<Property> removedProperties = new ArrayList<>();
     for (Property safelyProperty : safelyProperties) {
       try{
         Property pmsProperty = pmsPropertyLookup.get(safelyProperty.getReferenceId());
@@ -104,6 +105,7 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
         if (pmsProperty == null) {
           safelyProperty.setPmsStatus(PropertyStatus.INACTIVE);
           updatedProperties.add(safelyProperty);
+          successfullyDeleted++;
         }
       } catch(Exception e) {
         String message = String
@@ -118,11 +120,10 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
 
     jobContext.setNewProperties(newProperties);
     jobContext.setUpdatedProperties(updatedProperties);
-    jobContext.setRemovedProperties(removedProperties);
 
     stepStatistics.put(CREATED, newProperties.size());
-    stepStatistics.put(UPDATED, updatedProperties.size());
-    stepStatistics.put(DELETED, removedProperties.size());
+    stepStatistics.put(UPDATED, updatedProperties.size() - successfullyDeleted);
+    stepStatistics.put(DELETED, successfullyDeleted);
     stepStatistics.put(PROCESSED, pmsProperties.size());
     jobContext.getJobStatistics().put(STEP_NAME,stepStatistics);
 

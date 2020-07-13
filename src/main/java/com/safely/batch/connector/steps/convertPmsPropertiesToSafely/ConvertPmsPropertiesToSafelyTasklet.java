@@ -42,7 +42,7 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
-    HashMap<String, Object> stepStatistics = new HashMap<>();
+    Map<String, Object> stepStatistics = new HashMap<>();
     Organization organization = jobContext.getOrganization();
 
     List<PmsProperty> pmsProperties = jobContext.getPmsProperties();
@@ -95,8 +95,6 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     // only using full baths for current calculation
     safelyProperty.setBathRooms(pmsProperty.getBathrooms());
     safelyProperty.setBedRooms(String.valueOf(pmsProperty.getBedrooms()));
-
-    int test = 4/0;
 
     //Address
     safelyProperty.setStreetLine1(pmsProperty.getAddress1());

@@ -29,7 +29,7 @@ public class LoadPmsReservationsTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
-        HashMap<String, Object> stepStatistics = new HashMap<>();
+        Map<String, Object> stepStatistics = new HashMap<>();
 
         log.info("Loading reservations from PMS");
 

@@ -47,7 +47,7 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
   protected JobContext processReservations(JobContext jobContext, ChunkContext chunkContext)
       throws Exception {
 
-    HashMap<String, Object> stepStatistics = new HashMap<>();
+    Map<String, Object> stepStatistics = new HashMap<>();
 
     List<Reservation> safelyReservations = jobContext.getCurrentSafelyReservations();
     List<Reservation> pmsReservations = jobContext.getPmsSafelyReservations();

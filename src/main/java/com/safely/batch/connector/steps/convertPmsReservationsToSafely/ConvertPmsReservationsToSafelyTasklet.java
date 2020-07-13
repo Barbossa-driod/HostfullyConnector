@@ -40,7 +40,7 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
       throws Exception {
 
-    HashMap<String, Object> stepStatistics = new HashMap<>();
+    Map<String, Object> stepStatistics = new HashMap<>();
 
     Organization organization = jobContext.getOrganization();
 
