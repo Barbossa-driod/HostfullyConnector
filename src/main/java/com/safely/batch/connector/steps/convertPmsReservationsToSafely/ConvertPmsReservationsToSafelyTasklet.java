@@ -88,10 +88,12 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
     Reservation safelyReservation = new Reservation();
 
     safelyReservation.setOrganizationId(organization.getEntityId());
-
     safelyReservation.setLegacyOrganizationId(organization.getLegacyOrganizationId());
-
     safelyReservation.setReferenceId(String.valueOf(pmsReservation.getUid()));
+
+    // set category 1 & 2 codes
+    safelyReservation.setCategory1("");
+    safelyReservation.setCategory2(pmsReservation.getStatus());
 
     setReservationType(pmsReservation, safelyReservation, organization);
     setBookingChannelType(pmsReservation, safelyReservation, organization);
@@ -111,6 +113,8 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
       Organization organization) {
 
     if (pmsReservation.getSource() != null) {
+      safelyReservation.setCategory3(pmsReservation.getSource());
+
       //calculate the mapped ReservationType
       BookingChannelType bookingChannelType = BookingChannelType.OTHER;
       String typeCode = pmsReservation.getSource();
