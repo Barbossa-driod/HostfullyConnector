@@ -1,12 +1,25 @@
 package com.safely.batch.connector.steps.convertPmsReservationsToSafely;
 
-import com.safely.api.domain.*;
-import com.safely.api.domain.enumeration.*;
+import com.safely.api.domain.Guest;
+import com.safely.api.domain.GuestAddress;
+import com.safely.api.domain.GuestEmail;
+import com.safely.api.domain.GuestPhone;
+import com.safely.api.domain.Organization;
+import com.safely.api.domain.Reservation;
+import com.safely.api.domain.enumeration.AddressType;
+import com.safely.api.domain.enumeration.BookingChannelType;
+import com.safely.api.domain.enumeration.PhoneType;
+import com.safely.api.domain.enumeration.ReservationStatus;
+import com.safely.api.domain.enumeration.ReservationType;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
 import com.safely.batch.connector.steps.JobContext;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -14,12 +27,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
 

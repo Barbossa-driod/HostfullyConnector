@@ -2,10 +2,12 @@ package com.safely.batch.connector.steps.computeReservationsChangelist;
 
 import com.safely.api.domain.Organization;
 import com.safely.api.domain.Reservation;
-import com.safely.api.domain.enumeration.ConnectorOperationMode;
-import com.safely.batch.connector.pms.reservation.PmsReservation;
 import com.safely.batch.connector.steps.JobContext;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -13,11 +15,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class ComputeReservationsChangeListTasklet implements Tasklet {
 

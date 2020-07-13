@@ -1,11 +1,5 @@
 package com.safely.batch.connector.steps.convertPmsPropertiesToSafely;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import com.safely.api.domain.Organization;
 import com.safely.api.domain.Property;
 import com.safely.api.domain.PropertyPhoto;
@@ -15,7 +9,12 @@ import com.safely.api.domain.enumeration.PropertyType;
 import com.safely.batch.connector.pms.property.PmsProperty;
 import com.safely.batch.connector.pms.property.PmsPropertyPhoto;
 import com.safely.batch.connector.steps.JobContext;
-import org.checkerframework.checker.formatter.FormatUtil.ExcessiveOrMissingFormatArgumentException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;

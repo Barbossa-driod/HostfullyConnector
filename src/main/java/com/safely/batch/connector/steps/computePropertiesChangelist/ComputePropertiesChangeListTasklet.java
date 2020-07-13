@@ -89,7 +89,6 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
         Exception wrapperException = new Exception(message, e);
         chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
       }
-
     }
 
     int successfullyDeleted = 0;
@@ -98,8 +97,6 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
     for (Property safelyProperty : safelyProperties) {
       try{
         Property pmsProperty = pmsPropertyLookup.get(safelyProperty.getReferenceId());
-
-        //I do not think we need to implement any logic here.
 
         // if we don't see the property in the data pull from PMS, then we will mark the property with PMS Status inactive
         if (pmsProperty == null) {
@@ -115,7 +112,6 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
         Exception wrapperException = new Exception();
         chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
       }
-
     }
 
     jobContext.setNewProperties(newProperties);

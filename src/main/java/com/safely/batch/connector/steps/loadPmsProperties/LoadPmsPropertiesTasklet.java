@@ -1,6 +1,5 @@
 package com.safely.batch.connector.steps.loadPmsProperties;
 
-import com.safely.api.domain.Organization;
 import com.safely.batch.connector.client.PropertiesService;
 import com.safely.batch.connector.pms.property.PmsProperty;
 import com.safely.batch.connector.steps.JobContext;
