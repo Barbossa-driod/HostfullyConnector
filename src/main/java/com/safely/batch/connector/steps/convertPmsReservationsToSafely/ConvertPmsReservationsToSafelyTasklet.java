@@ -37,7 +37,7 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
   public JobContext jobContext;
 
 
-  private static final String CONVERTED= "converted";
+  private static final String CONVERTED = "converted";
   private static final String PROCESSED = "processed";
   private static final String FAILED = "failed";
   private static final String FAILED_IDS = "failed_ids";
@@ -61,7 +61,7 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
       try {
         Reservation reservation = convertToSafelyReservation(organization, pmsReservation);
         pmsConvertedReservations.add(reservation);
-      } catch(Exception e) {
+      } catch (Exception e) {
         String message = String
             .format("Failed to convert reservation with Uid %s", pmsReservation.getUid());
         log.error(message);
@@ -92,7 +92,7 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
     safelyReservation.setReferenceId(String.valueOf(pmsReservation.getUid()));
 
     // set category 1 & 2 codes
-    safelyReservation.setCategory1("");
+    safelyReservation.setCategory1(pmsReservation.getSource());
     safelyReservation.setCategory2(pmsReservation.getStatus());
 
     setReservationType(pmsReservation, safelyReservation, organization);
@@ -189,23 +189,43 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
 
   private void setReservationStatus(PmsReservation pmsReservation, Reservation safelyReservation) {
 
-    ReservationStatus status = null;
+    ReservationStatus status = ReservationStatus.INACTIVE;
 
-    switch (pmsReservation.getStatus().toLowerCase()) {
-      case "new":
-      case "booked":
-      case "paid_in_full":
+    if (pmsReservation.getStatus() != null) {
+      // Hostfully has a list of status codes, however there can be a value added to the end of the "booked" code
+      if (pmsReservation.getStatus().toLowerCase().startsWith("booked")) {
         status = ReservationStatus.ACTIVE;
-        break;
-      case "cancelled_by_traveler":
-      case "cancelled_by_owner":
-        status = ReservationStatus.CANCELLED;
-        break;
-      default:
-        status = ReservationStatus.INACTIVE;
-        log.warn("Unsupported Reservation Status {} found.", pmsReservation.getStatus());
-        break;
+      } else {
+        // handle all the standard codes
+        switch (pmsReservation.getStatus().toLowerCase()) {
+          case "booked":
+          case "paid_in_full":
+            status = ReservationStatus.ACTIVE;
+            break;
+          case "cancelled":
+          case "cancelled_by_traveler":
+          case "cancelled_by_owner":
+            status = ReservationStatus.CANCELLED;
+            break;
+          case "new":
+          case "on_hold":
+          case "blocked":
+          case "declined":
+          case "ignored":
+          case "pending":
+            status = ReservationStatus.INACTIVE;
+            break;
+          default:
+            status = ReservationStatus.INACTIVE;
+            log.warn("Unsupported Reservation Status {} found.", pmsReservation.getStatus());
+            break;
+        }
+      }
+    } else {
+      log.warn("Reservation {} has a missing status code.", pmsReservation.getUid());
+      status = ReservationStatus.INACTIVE;
     }
+
     safelyReservation.setPmsStatus(status);
     safelyReservation.setStatus(status);
   }
