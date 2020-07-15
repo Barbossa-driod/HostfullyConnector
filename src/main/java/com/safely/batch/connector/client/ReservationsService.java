@@ -71,7 +71,7 @@ public class ReservationsService {
         throw ex;
       }
       pageCount++;
-    } while (retrievedCount > 0);
+    } while (retrievedCount > 0 && retrievedCount == LIMIT);
 
     return reservations;
   }

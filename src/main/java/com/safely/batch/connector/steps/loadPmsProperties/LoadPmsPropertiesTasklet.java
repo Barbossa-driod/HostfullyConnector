@@ -24,7 +24,7 @@ public class LoadPmsPropertiesTasklet implements Tasklet {
   @Autowired
   private PropertiesService propertyServices;
 
-  private static final String STEP_NAME= "load_properties";
+  private static final String STEP_NAME= "load_properties_from_pms";
   private static final String LOADED = "loaded";
 
   @Override

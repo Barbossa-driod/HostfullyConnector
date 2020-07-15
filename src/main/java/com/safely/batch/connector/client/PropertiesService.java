@@ -71,7 +71,7 @@ public class PropertiesService {
         throw ex;
       }
       pageCount++;
-    } while (retrievedCount > 0);
+    } while (retrievedCount > 0 && retrievedCount == LIMIT);
 
     return properties;
   }

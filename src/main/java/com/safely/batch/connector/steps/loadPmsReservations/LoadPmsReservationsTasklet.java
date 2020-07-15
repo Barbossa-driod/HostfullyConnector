@@ -24,7 +24,7 @@ public class LoadPmsReservationsTasklet implements Tasklet {
     @Autowired
     private ReservationsService reservationsService;
 
-    private static final String STEP_NAME= "load_reservations";
+    private static final String STEP_NAME= "load_reservations_from_pms";
     private static final String LOADED = "loaded";
 
     @Override
