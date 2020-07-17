@@ -1,6 +1,5 @@
 package com.safely.batch.connector;
 
-import com.safely.batch.connector.common.client.aws.SecretsManagerClient;
 import com.safely.batch.connector.steps.JobContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,11 +84,6 @@ public class BatchConfiguration {
   @Qualifier("loadPmsApiKey")
   @Autowired
   private Step loadPmsApiKey;
-
-  @Bean
-  public SecretsManagerClient getSecretsManagerClient() {
-    return new SecretsManagerClient();
-  }
 
   @Bean
   public Job pmsConnectorJob(JobCompletionNotificationListener listener) {

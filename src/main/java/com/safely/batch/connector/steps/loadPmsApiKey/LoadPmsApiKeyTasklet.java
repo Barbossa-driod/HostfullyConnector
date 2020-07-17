@@ -28,7 +28,7 @@ public class LoadPmsApiKeyTasklet implements Tasklet {
   public SecretsManagerClient secretsManagerClient;
 
   @Autowired
-  SafelyPropertiesConfig safelyPropertiesConfig;
+  public SafelyPropertiesConfig safelyPropertiesConfig;
 
   @Override
   public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
