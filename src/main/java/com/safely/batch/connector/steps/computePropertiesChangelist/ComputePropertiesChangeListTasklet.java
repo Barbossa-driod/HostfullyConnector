@@ -75,8 +75,7 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
           newProperties.add(pmsProperty);
         } else {
           // pmsObjectHashcode to check for changes
-          if (!safelyProperty.getPmsObjectHashcode()
-              .equals(pmsProperty.getPmsObjectHashcode())) {
+          if (!safelyProperty.equals(pmsProperty)) {
             updateProperty(safelyProperty, pmsProperty);
             updatedProperties.add(safelyProperty);
           }

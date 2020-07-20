@@ -78,10 +78,11 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
             .getLastModifiedDate().equals(pmsReservation.getLastModifiedDate())){
           updateReservation(safelyReservation, pmsReservation);
           updatedReservations.add(safelyReservation);
-        } else if (!safelyReservation.getPmsObjectHashcode()
-            .equals(pmsReservation.getPmsObjectHashcode())) {
-          updateReservation(pmsReservation, safelyReservation);
-          updatedReservations.add(safelyReservation);
+        } else {
+          if (!safelyReservation.equals(pmsReservation)) {
+            updateReservation(safelyReservation, pmsReservation);
+            updatedReservations.add(safelyReservation);
+            }
         }
       } catch (Exception e){
         String message = String
