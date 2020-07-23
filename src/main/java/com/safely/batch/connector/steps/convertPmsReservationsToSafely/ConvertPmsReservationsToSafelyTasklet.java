@@ -170,7 +170,7 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
     guestAddress.setStateCode(pmsReservation.getState());
 
     if (pmsReservation.getPostalCode() != null) {
-      guestAddress.setPostalCode(pmsReservation.getPostalCode().toString());
+      guestAddress.setPostalCode(pmsReservation.getPostalCode());
     }
 
     guestAddress.setCountryCode(pmsReservation.getCountryCode());

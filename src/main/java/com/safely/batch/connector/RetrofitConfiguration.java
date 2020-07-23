@@ -10,6 +10,8 @@ import com.safely.batch.connector.common.client.safely.ConnectorEventsV1ApiClien
 import com.safely.batch.connector.common.client.safely.ConnectorOrganizationsV1ApiClient;
 import com.safely.batch.connector.common.client.safely.ConnectorPropertiesV1ApiClient;
 import com.safely.batch.connector.common.client.safely.ConnectorReservationsV1ApiClient;
+import java.util.concurrent.TimeUnit;
+import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,12 @@ public class RetrofitConfiguration {
   @Bean
   @Qualifier("PmsApiBuilder")
   public Retrofit getPmsApiRetrofit(ObjectMapper objectMapper) {
+
+    OkHttpClient httpClient = new OkHttpClient.Builder()
+        .callTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .build();
 
     Retrofit retrofit = new Retrofit.Builder()
         .baseUrl(safelyPropertiesConfig.getHostfullyBaseUrl())

@@ -26,7 +26,7 @@ public class PmsReservation {
     private String city;
 
     @JsonProperty("postalCode")
-    private Integer postalCode;
+    private String postalCode;
 
     @JsonProperty("source")
     private String source;

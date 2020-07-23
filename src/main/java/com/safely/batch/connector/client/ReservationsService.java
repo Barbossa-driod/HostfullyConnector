@@ -2,7 +2,6 @@ package com.safely.batch.connector.client;
 
 import com.google.common.util.concurrent.RateLimiter;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -18,11 +17,9 @@ public class ReservationsService {
 
   private static final Logger log = LoggerFactory.getLogger(ReservationsService.class);
 
-  private static final int LIMIT = 100;
-  private static final String AUTHENTICATION_BEARER_FORMAT = "Bearer %s";
+  private static final int LIMIT = 20;
 
   private ReservationsV1ApiClient reservationsV1ApiClient;
-  private DateTimeFormatter formatter;
   private final RateLimiter rateLimiter;
 
   public ReservationsService(ReservationsV1ApiClient reservationsV1ApiClient,
@@ -32,14 +29,12 @@ public class ReservationsService {
 
     this.reservationsV1ApiClient = reservationsV1ApiClient;
     this.rateLimiter = rateLimiter;
-    formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
   }
 
   public List<PmsReservation> getReservations(String token, String agencyUid) throws Exception {
     Assert.notNull(token, "Authentication token cannot be null!");
     Assert.notNull(agencyUid, "agencyUid cannot be null!");
 
-    String authenticationToken = String.format(AUTHENTICATION_BEARER_FORMAT, token);
     List<PmsReservation> reservations = new ArrayList<>();
 
     int offset = 0;
@@ -61,9 +56,13 @@ public class ReservationsService {
 
         List<PmsReservation> page = response.body();
 
-        reservations.addAll(page);
+        if (page != null) {
+          reservations.addAll(page);
+          retrievedCount = page.size();
+        } else {
+          retrievedCount = 0;
+        }
 
-        retrievedCount = page.size();
         offset = offset + retrievedCount;
 
       } catch (Exception ex) {
