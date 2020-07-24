@@ -2,8 +2,6 @@ package com.safely.batch.connector.client;
 
 import com.google.common.util.concurrent.RateLimiter;
 import com.safely.batch.connector.pms.property.PmsProperty;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -19,8 +17,7 @@ public class PropertiesService {
 
   private static final Logger log = LoggerFactory.getLogger(PropertiesService.class);
 
-  private static final int LIMIT = 100;
-  private static final String AUTHENTICATION_BEARER_FORMAT = "Bearer %s";
+  private static final int LIMIT = 20;
 
   private final RateLimiter rateLimiter;
   private PropertiesV1ApiClient propertiesV1ApiClient;
@@ -38,9 +35,7 @@ public class PropertiesService {
     Assert.notNull(token, "Authentication token cannot be null!");
     Assert.notNull(agencyUid, "agencyUid cannot be null!");
 
-
     List<PmsProperty> properties = new ArrayList<>();
-
 
     int offset = 0;
     int retrievedCount = 0;
@@ -60,9 +55,12 @@ public class PropertiesService {
         }
 
         List<PmsProperty> page = response.body();
-        properties.addAll(page);
-
-        retrievedCount = page.size();
+        if (page != null) {
+          properties.addAll(page);
+          retrievedCount = page.size();
+        } else {
+          retrievedCount = 0;
+        }
 
         offset = offset + retrievedCount;
 

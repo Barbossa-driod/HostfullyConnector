@@ -61,9 +61,6 @@ public class PmsProperty {
     @JsonProperty("floor")
     private Integer floor;
 
-    @JsonProperty("availabilityCalendarUrl")
-    private String availabilityCalendarUrl;
-
     @JsonProperty("areaSize")
     private Integer areaSize;
 
@@ -112,9 +109,6 @@ public class PmsProperty {
     @JsonProperty("baseDailyRate")
     private Integer baseDailyRate;
 
-    @JsonProperty("externalCalendarUrls")
-    private List<String> externalCalendarUrls;
-
     @JsonProperty("webLink")
     private String webLink;
 
@@ -147,12 +141,6 @@ public class PmsProperty {
 
     @JsonProperty("description")
     private String description;
-
-    @JsonProperty("rentalLicenseNumber")
-    private BigInteger rentalLicenseNumber;
-
-    @JsonProperty("rentalConditions")
-    private List<PmsPropertyRentalConditions> rentalConditions;
 
     @JsonProperty("propertyURL")
     private String propertyURL;
