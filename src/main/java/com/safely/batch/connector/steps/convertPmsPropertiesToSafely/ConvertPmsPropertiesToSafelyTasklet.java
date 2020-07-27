@@ -189,7 +189,7 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
           log.error(
               "Failed to convert Property Type string to enum. PMS value: {}. Safely value: {} for client {} ({})",
               typeCode, safelyPropertyType, organization.getName(), organization.getId());
-          log.error(ex.getMessage());
+          log.error(ex.getMessage(), ex);
           propertyType = PropertyType.OTHER;
         }
       } else {
