@@ -59,7 +59,7 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
       } catch(Exception e){
         String message = String
             .format("Failed to convert property with Uid %s", pmsProperty.getUid());
-        log.error(message);
+        log.error(message, e);
         failedPropertyUids.add(pmsProperty.getUid());
         Exception wrapperException = new Exception(message, e);
         chunkContext.getStepContext().getStepExecution().addFailureException(wrapperException);
