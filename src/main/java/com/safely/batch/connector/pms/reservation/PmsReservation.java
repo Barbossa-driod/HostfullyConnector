@@ -3,6 +3,7 @@ package com.safely.batch.connector.pms.reservation;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Data;
 
@@ -44,7 +45,10 @@ public class PmsReservation {
     private String countryCode;
 
     @JsonProperty("quoteAmount")
-    private Integer quoteAmount;
+    private BigDecimal quoteAmount;
+
+    @JsonProperty("preferredCurrency")
+    private String preferredCurrency;
 
     @JsonProperty("property")
     private PmsReservationProperty property;

@@ -13,9 +13,12 @@ import com.safely.api.domain.enumeration.ReservationStatus;
 import com.safely.api.domain.enumeration.ReservationType;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
 import com.safely.batch.connector.steps.JobContext;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,7 +67,7 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
       } catch (Exception e) {
         String message = String
             .format("Failed to convert reservation with Uid %s", pmsReservation.getUid());
-        log.error(message);
+        log.error(message, e);
         failedReservationUids.add(pmsReservation.getUid());
         Exception wrapperExecution = new Exception(message, e);
         chunkContext.getStepContext().getStepExecution().addFailureException(wrapperExecution);
@@ -95,14 +98,32 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
     safelyReservation.setCategory1(pmsReservation.getSource());
     safelyReservation.setCategory2(pmsReservation.getStatus());
 
+    if (pmsReservation.getProperty() != null) {
+      safelyReservation.setPropertyReferenceId(pmsReservation.getProperty().getUid());
+      safelyReservation.setPropertyName(pmsReservation.getProperty().getName());
+    }
+
     setReservationType(pmsReservation, safelyReservation, organization);
     setBookingChannelType(pmsReservation, safelyReservation, organization);
     setReservationGuests(pmsReservation, safelyReservation);
     setGuestTypeCounts(pmsReservation, safelyReservation);
-
     setReservationDates(pmsReservation, safelyReservation);
-
     setReservationStatus(pmsReservation, safelyReservation);
+
+    if (pmsReservation.getQuoteAmount() != null) {
+      safelyReservation.setPriceTotal(pmsReservation.getQuoteAmount());
+      safelyReservation.setCurrency(pmsReservation.getPreferredCurrency());
+
+      if (safelyReservation.getArrivalDate() != null
+          && safelyReservation.getDepartureDate() != null) {
+        long daysBetween = ChronoUnit.DAYS
+            .between(safelyReservation.getArrivalDate(), safelyReservation.getDepartureDate());
+        if (daysBetween > 0) {
+          safelyReservation.setPriceNightly(safelyReservation.getPriceTotal()
+              .divide(BigDecimal.valueOf(daysBetween), 2, RoundingMode.HALF_UP));
+        }
+      }
+    }
 
     safelyReservation.setPmsObjectHashcode(String.valueOf(pmsReservation.hashCode()));
 
@@ -235,7 +256,6 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
     if (pmsReservation.getCheckInDate() != null) {
       safelyReservation.setArrivalDate(LocalDate.parse(pmsReservation.getCheckInDate(),
           DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-
     }
 
     if (pmsReservation.getCheckOutDate() != null) {

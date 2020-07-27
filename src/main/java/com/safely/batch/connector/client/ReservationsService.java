@@ -44,10 +44,24 @@ public class ReservationsService {
       log.info("Loading page {} of listReservations.", pageCount);
       try {
         rateLimiter.acquire();
+        Response<List<PmsReservation>> response = null;
+        int attempts = 0;
+        do {
+          try {
+            Call<List<PmsReservation>> apiCall = reservationsV1ApiClient
+                .listReservations(token, agencyUid, LIMIT, offset);
+            response = apiCall.execute();
+          } catch (Exception ex) {
+//            log.error("Error while attempting to load reservations.", ex);
+//            if (attempts >= 3) {
+//              throw ex;
+//            }
+            attempts++;
+          }
+        } while (response == null && attempts <= 3);
 
-        Call<List<PmsReservation>> apiCall = reservationsV1ApiClient
-            .listReservations(token, agencyUid, LIMIT, offset);
-        Response<List<PmsReservation>> response = apiCall.execute();
+        if (response == null)
+          throw new Exception("Failed to load reservations after 3 tries.");
 
         if (!response.isSuccessful()) {
           log.error("ListReservations call failed! Error Code: {}", response.code());
