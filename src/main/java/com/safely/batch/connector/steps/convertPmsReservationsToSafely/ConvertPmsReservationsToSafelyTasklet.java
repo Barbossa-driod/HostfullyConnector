@@ -234,6 +234,10 @@ public class ConvertPmsReservationsToSafelyTasklet implements Tasklet {
           case "declined":
           case "ignored":
           case "pending":
+          case "closed_quote":
+          case "closed_hold":
+          case "hold_expired":
+          case "quote_sent":
             status = ReservationStatus.INACTIVE;
             break;
           default:
