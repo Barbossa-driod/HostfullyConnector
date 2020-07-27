@@ -73,13 +73,9 @@ public class ComputePropertiesChangeListTasklet implements Tasklet {
         // if the current PMS property does not exist in the Safely list, it is new
         if (safelyProperty == null) {
           newProperties.add(pmsProperty);
-        } else {
-          // pmsObjectHashcode to check for changes
-          if (!safelyProperty.getPmsObjectHashcode()
-              .equals(pmsProperty.getPmsObjectHashcode())) {
+        } else if (!safelyProperty.equals(pmsProperty)) {
             updateProperty(safelyProperty, pmsProperty);
             updatedProperties.add(safelyProperty);
-          }
         }
       } catch (Exception e) {
         String message = String

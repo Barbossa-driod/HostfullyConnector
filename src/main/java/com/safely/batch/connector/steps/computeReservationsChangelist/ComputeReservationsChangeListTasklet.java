@@ -73,15 +73,9 @@ public class ComputeReservationsChangeListTasklet implements Tasklet {
         if (safelyReservation == null) {
           newReservations.add(pmsReservation);
         }
-        //use either hashcode or Modified date to detect changes in a reservation
-        else if (safelyReservation.getLastModifiedDate() != null && !safelyReservation
-            .getLastModifiedDate().equals(pmsReservation.getLastModifiedDate())){
-          updateReservation(safelyReservation, pmsReservation);
-          updatedReservations.add(safelyReservation);
-        } else if (!safelyReservation.getPmsObjectHashcode()
-            .equals(pmsReservation.getPmsObjectHashcode())) {
-          updateReservation(pmsReservation, safelyReservation);
-          updatedReservations.add(safelyReservation);
+        else if (!safelyReservation.equals(pmsReservation)) {
+            updateReservation(safelyReservation, pmsReservation);
+            updatedReservations.add(safelyReservation);
         }
       } catch (Exception e){
         String message = String
