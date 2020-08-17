@@ -99,7 +99,9 @@ public class ConvertPmsPropertiesToSafelyTasklet implements Tasklet {
     safelyProperty.setStreetLine1(pmsProperty.getAddress1());
     safelyProperty.setStreetLine2(pmsProperty.getAddress2());
     safelyProperty.setCity(pmsProperty.getCity());
-    safelyProperty.setPostalCode(pmsProperty.getPostalCode().toString());
+    if (pmsProperty.getPostalCode() != null) {
+      safelyProperty.setPostalCode(pmsProperty.getPostalCode().toString());
+    }
     safelyProperty.setStateCode(pmsProperty.getState());
 
 
