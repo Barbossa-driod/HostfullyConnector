@@ -42,6 +42,7 @@ public class RetrofitConfiguration {
     Retrofit retrofit = new Retrofit.Builder()
         .baseUrl(safelyPropertiesConfig.getHostfullyBaseUrl())
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .client(httpClient)
         .build();
 
     return retrofit;
