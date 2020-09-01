@@ -31,6 +31,31 @@ public class PropertiesService {
     this.rateLimiter = rateLimiter;
   }
 
+  public PmsProperty getProperty(String token, String propertyId, String agencyUid)
+      throws Exception {
+    Assert.notNull(token, "Authentication token cannot be null!");
+    Assert.notNull(propertyId, "PropertyId cannot be null!");
+    Assert.notNull(agencyUid, "agencyUid cannot be null!");
+
+    log.info("Loading property with id: {}", propertyId);
+    try {
+      rateLimiter.acquire();
+
+      Call<PmsProperty> apiCall = propertiesV1ApiClient.getProperty(token, propertyId, agencyUid);
+      Response<PmsProperty> response = apiCall.execute();
+
+      if (!response.isSuccessful()) {
+        log.error("GetProperties call failed! Error Code: {}", response.code());
+        throw new Exception(response.message());
+      }
+
+      return response.body();
+    } catch (Exception ex) {
+      log.error("Exception while calling ListProperties!", ex);
+      throw ex;
+    }
+  }
+
   public List<PmsProperty> getProperties(String token, String agencyUid) throws Exception {
     Assert.notNull(token, "Authentication token cannot be null!");
     Assert.notNull(agencyUid, "agencyUid cannot be null!");
