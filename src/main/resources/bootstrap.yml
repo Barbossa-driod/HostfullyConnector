@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: hostfully-connector
+
+aws:
+  paramstore:
+    prefix: ${SSM_PREFIX}
+    enabled: true

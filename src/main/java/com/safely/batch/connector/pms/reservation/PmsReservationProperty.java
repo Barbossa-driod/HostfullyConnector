@@ -16,7 +16,6 @@ public class PmsReservationProperty {
   @JsonProperty("postalCode")
   private Integer postalCode;
 
-  //note: I am parsing the lat and long as a BigDecimal because that is in MyVR
   @JsonProperty("latitude")
   private BigDecimal latitude;
 

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
@@ -11,12 +10,13 @@
   </parent>
   <groupId>com.safely.batch.connector</groupId>
   <artifactId>HostfullyConnector</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
 
   <properties>
-    <java.version>1.8</java.version>
+    <java.version>11</java.version>
     <jackson.version>2.10.1</jackson.version>
     <retrofit.version>2.7.2</retrofit.version>
+    <springcloud.version>2.2.4.RELEASE</springcloud.version>
   </properties>
 
   <repositories>
@@ -26,53 +26,41 @@
     </repository>
   </repositories>
 
-
   <dependencies>
-
-    <dependency>
-      <groupId>com.safely.api</groupId>
-      <artifactId>domain</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.springdoc</groupId>
-          <artifactId>springdoc-openapi-ui</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-data-mongodb</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.github.mongobee</groupId>
-          <artifactId>mongobee</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
 
     <dependency>
       <groupId>com.safely.batch.connector</groupId>
       <artifactId>common</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-data-mongodb</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.github.mongobee</groupId>
-          <artifactId>mongobee</artifactId>
-        </exclusion>
-      </exclusions>
+      <version>2.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-batch</artifactId>
+      <artifactId>spring-boot-starter</artifactId>
     </dependency>
+
     <dependency>
-      <groupId>org.hsqldb</groupId>
-      <artifactId>hsqldb</artifactId>
-      <scope>runtime</scope>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-aws</artifactId>
+      <version>${springcloud.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-aws-messaging</artifactId>
+      <version>${springcloud.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-aws-parameter-store-config</artifactId>
+      <version>${springcloud.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-sts</artifactId>
+      <version>1.11.792</version>
     </dependency>
 
     <dependency>
@@ -138,23 +126,6 @@
       <artifactId>guava</artifactId>
       <version>29.0-jre</version>
     </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.junit.vintage</groupId>
-          <artifactId>junit-vintage-engine</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.batch</groupId>
-      <artifactId>spring-batch-test</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -165,7 +136,6 @@
       </plugin>
     </plugins>
   </build>
-
   <reporting>
     <plugins>
       <plugin>
