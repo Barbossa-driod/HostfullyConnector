@@ -45,13 +45,13 @@ public class PropertiesService {
       Response<PmsProperty> response = apiCall.execute();
 
       if (!response.isSuccessful()) {
-        log.error("GetProperties call failed! Error Code: {}", response.code());
+        log.error("GetProperty call failed! Error Code: {}", response.code());
         throw new Exception(response.message());
       }
 
       return response.body();
     } catch (Exception ex) {
-      log.error("Exception while calling ListProperties!", ex);
+      log.error("Exception while calling GetProperty!", ex);
       throw ex;
     }
   }

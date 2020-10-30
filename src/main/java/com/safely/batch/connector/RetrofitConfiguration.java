@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit2.Retrofit;
@@ -26,8 +27,17 @@ public class RetrofitConfiguration {
 
   private static final Logger log = LoggerFactory.getLogger(RetrofitConfiguration.class);
 
-  @Autowired
-  public SafelyPropertiesConfig safelyPropertiesConfig;
+  @Value("${safely.baseUrl}")
+  private String baseUrl;
+
+  @Value("${safely.hostfullyBaseUrl}")
+  private String hostfullyBaseUrl;
+
+  @Value("${safely.pmsRateLimitPerMinute}")
+  private Integer pmsRateLimitPerMinute;
+
+  @Value("${safely.safelyRateLimitPerMinute}")
+  private Integer safelyRateLimitPerMinute;
   
   @Bean
   @Qualifier("PmsApiBuilder")
@@ -40,7 +50,7 @@ public class RetrofitConfiguration {
         .build();
 
     Retrofit retrofit = new Retrofit.Builder()
-        .baseUrl(safelyPropertiesConfig.getHostfullyBaseUrl())
+        .baseUrl(hostfullyBaseUrl)
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))
         .client(httpClient)
         .build();
@@ -63,8 +73,7 @@ public class RetrofitConfiguration {
   @Bean
   @Qualifier("PmsApiRateLimiter")
   public RateLimiter getPmsApiRateLimiter() {
-    int ratePerMinute = safelyPropertiesConfig.getPmsRateLimitPerMinute() == null ? 17
-        : safelyPropertiesConfig.getPmsRateLimitPerMinute();
+    int ratePerMinute = pmsRateLimitPerMinute == null ? 17 : pmsRateLimitPerMinute;
     double permitsPerSecond = ratePerMinute / 60.0;
     log.info("Creating Pms API RateLimiter with permits per second of: {}", permitsPerSecond);
     return RateLimiter.create(permitsPerSecond);
@@ -75,7 +84,7 @@ public class RetrofitConfiguration {
   public Retrofit getSafelyApiRetrofit(ObjectMapper objectMapper) {
 
     Retrofit retrofit = new Retrofit.Builder()
-        .baseUrl(safelyPropertiesConfig.getBaseUrl())
+        .baseUrl(baseUrl)
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))
         .build();
 
@@ -115,8 +124,7 @@ public class RetrofitConfiguration {
   @Bean
   @Qualifier("SafelyApiRateLimiter")
   public RateLimiter getSafelyApiRateLimiter() {
-    int ratePerMinute = safelyPropertiesConfig.getSafelyRateLimitPerMinute() == null ? 100
-        : safelyPropertiesConfig.getSafelyRateLimitPerMinute();
+    int ratePerMinute = safelyRateLimitPerMinute == null ? 100 : safelyRateLimitPerMinute;
     double permitsPerSecond = ratePerMinute / 60.0;
     log.info("Creating Safely API RateLimiter with permits per second of: {}", permitsPerSecond);
     return RateLimiter.create(permitsPerSecond);

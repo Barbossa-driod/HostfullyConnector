@@ -1,0 +1,4 @@
+org.springframework.cloud.bootstrap.BootstrapConfiguration=\
+com.safely.batch.connector.terraform.TerraformWorkspace,\
+com.safely.batch.connector.JacksonConfiguration,\
+com.safely.batch.connector.AwsConfiguration

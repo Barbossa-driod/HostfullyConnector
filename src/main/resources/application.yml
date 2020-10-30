@@ -1,4 +1,24 @@
+spring:
+  application:
+    name: hostfully-connector
+
+cloud:
+  aws:
+    stack:
+      auto: false
+    region:
+      auto: false
+      static: ${REGION}
+
 safely:
-  pmsRateLimitPerMinute: 17
+  pmsRateLimitPerMinute: 15
   safelyRateLimitPerMinute: 400
-  pmsPartnerApiKey: Hostfully/ApiKey
+  api:
+    username: loaded-from-ssm
+    password: loaded-from-ssm
+    queue:
+      inbound:
+        name: loaded-from-ssm
+        visibility: loaded-from-ssm
+      outbound:
+        name: loaded-from-ssm

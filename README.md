@@ -1,129 +1,49 @@
 # Hostfully Connector
-Spring Batch processor for loading client data from the Hostfully PMS API.
 
-## Requirements
-* Java 8
+A queue driven integration with the Hostfully PMS API <https://dev.hostfully.com/reference>. The service will long poll an SQS queue and process messages. Upon completion of a job, the service will send a message to the inbound queue for the `Legacy Sync Connector` in order to trigger a sync between the new data and the legacy portal.
 
-## IntelliJ IDEA Debug Configuration
-* Program Arguments: `--organizationId=XXX` use the `entityId` of the organization
-* JRE: >= Java 8
-* Active Profiles: `local`
-* Override parameters: `user.timezone = UTC`
+This application has a Terraform dependency on the `Legacy Sync Connector`. It must use `Legacy SYnc Connector`'s remote state in order to get access to the connector's inbound queue so that it can send it messages to trigger runs.
 
-## Compiling with Maven
-```shell script
-$ ./mvnw compile
-```
+## Terraform / AWS
 
-## Local Debug Setup
-1. Run the `SafelyAPI` application which should be serving requests at http://localhost:8080
-2. Run `HostfullyConnector` with the `organizationId` parameter set to an Organization `entityId` that is setup for testing.
+| path            | description                                |
+| --------------- | ------------------------------------------ |
+| ./src/terraform | root directory for terraform configuration |
 
-## Organization Configuration Values
-```json
-{
-    "_id" : "<alphanumeric-id",
-    "entityId": "<alphanumeric-d>",
-    "legacyOrganizationId" : <integer-id>,
-    "version" : NumberLong(1),
-    "name" : "Acme Property Management",
-    "status" : "ACTIVE",
-    "type" : "PROPERTY_MANAGER",
-    "reservationSource" : "HOSTFULLY",
-    "insuranceDefault" : true,
-    "verificationDefault" : true,
-    "startDate" : ISODate("2020-03-01T00:00:00.000Z"),
-    "legacyPropertyMode" : "EXCLUDE_DEACTIVATED",
-    "connectorOperationMode" : "ALL",
-    "configurations": [
-        {
-          "effectiveStartDate" : ISODate("2020-01-01T00:00:00.000Z"),
-          "effectiveEndDate" : null,
-          "addNewProperties" : true,
-          "insuranceDefault" : true,
-          "verificationDefault" : true,
-          "insureReservationWhenDropsBelowLongTermExclusion" : false,
-          "legacyPropertyAccessMode" : "FULL_ACCESS",
-          "legacyReservationAccessMode" : "READ_ONLY",
-          "startDate" : ISODate("2020-01-01T00:00:00.000Z"),
-          "endDate" : null,
-          "legacyBookingStartDate" : null,
-          "legacyBookingEndDate" : null,
-          "legacyArrivalStartDate" : null,
-          "legacyArrivalEndDate" : null,
-          "safelyLegacyPortalApiCredentials" : {
-              "name" : "Safely Legacy API",
-              "source" : "SAFELY_API",
-              "account_key" : ""
-          },
-          "pmsCredentials" : {
-              "name" : "Hostfully",
-              "source" : "HOSTFULLY",
-              "custom_credentials_data" : {
-                  "<key-based-on-api-needs>" : "<token-or-other-client-specific-value>"
-              },
-              "account_key" : "",
-              "account_private_key" : ""
-          },
-          "organizationReservationCategory" : {
-              "sequenceNumber" : 0,
-              "category1" : [ 
-                  "owner", 
-                  "owner_guest"
-              ],
-              "category2" : [ 
-                  "canceled", 
-                  "declined"
-              ],
-              "insured" : false,
-              "verifications" : false
-          }
-        }   
-    ],
-    "organizationSourceCredentials" : {
-        "name" : "Hostfully",
-        "source" : "HOSTFULLY",
-        "custom_credentials_data" : {
-            "<key-based-on-api-needs>" : "<token-or-other-client-specific-value>"
-        }
-    },
-    "organizationReservationCategories" : [ 
-        {
-            "sequenceNumber" : 0,
-            "category1" : [ 
-                "GC"
-            ],
-            "insured" : false,
-            "verifications" : false
-        }
-    ],
-    "pmsPropertyTypesToSafelyTypesMapping" : {
-        "HOUSE" : "SINGLE_FAMILY_HOME",
-        "HOTEL" : "OTHER",
-        "LODGE" : "OTHER",
-        "B&B" : "OTHER",
-        "RV" : "OTHER",
-        "CONDO" : "OTHER"
-    },
-    "pmsReservationTypesToSafelyReservationTypesMapping" : {
-        "G" : "STANDARD_GUEST",
-        "OS" : "OWNER",
-        "LT" : "LONG_TERM_GUEST",
-        "OTA1" : "STANDARD_GUEST",
-        "OTA2" : "STANDARD_GUEST",
-        "OTA" : "STANDARD_GUEST"
-    },
-    "pmsChannelTypesToSafelyBookingChannelTypesMapping" : {
-        "OTA1" : "HOMEAWAY",
-        "OTA2" : "AIRBNB",
-        "OTA" : "BOOKING_COM",
-        "G" : "OTHER"
-    },
-    "legacyBookingStartDate" : ISODate("2020-02-01T00:00:00.000Z"),
-    "_class" : "com.safely.api.domain.Organization"
-}
- ``` 
+## Application Code
 
-When pulling data from the PMS, the connector will use the lesser of the `startDate`, `legacyBookingStartDate`, and `legacyArrivalStartDate` to determine the earliest date to load reservations.
+| path       | description                  |
+| ---------- | ---------------------------- |
+| ./src/main | root directory for java code |
 
-The `pmsPropertyTypesToSafelyTypesMapping`, `pmsReservationTypesToSafelyReservationTypesMapping` and `pmsChannelTypesToSafelyBookingChanelTypesMapping` objects are not required to successfully load data from PMS. However, they should be populated when possible to better inform the mapping of data to a standardized form so that we can improve our analytics.
+## Tools
+
+| path               | description                                                         |
+| ------------------ | ------------------------------------------------------------------- |
+| ./tools/deploy.ps1 | calls CircleCI pipeline to deploy the app `help ./tools/deploy.ps1` |
+| ./mvnw             | Maven wrapper                                                       |
+
+## IntelliJ Run/Debug Configuration
+
+1. Active Profiles: `local`
+2. Environment Variables: `ISLOCAL=true;SSM_PREFIX=<placeholder>`
+
+    | name       | value                 |
+    | ---------- | --------------------- |
+    | IS_LOCAL   | true                  |
+    | SSM_PREFIX | from terraform output |
+
+3. Override parameters:
+
+    | name          | value |
+    | ------------- | ----- |
+    | user.timezone | UTC   |
+
+## Local Development Workflow
+
+1. Create feature branch in git `git checkout -b <branchname>`
+2. Run Terraform `plan`/`apply` in `./src/terraform/src` to create branch resources in the development account with the branch name as the prefix. After running `plan`/`apply` you will need to log into the AWS Dev Account and update your workspace's SSM parameter for the /safely/pms/apikey to the Safely API key for Hostfully. DO NOT CHECK THE API KEY INTO GIT in the `config/local.tfvars` file.
+3. Code
+4. Run or debug the application
+5. Push branch and create PR
+6. Clean up branch resources by running Terraform `destroy` in `./src/terraform/src`

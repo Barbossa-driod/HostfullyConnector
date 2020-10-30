@@ -3,5 +3,4 @@ spring:
 
 safely:
   baseUrl: https://test.api.safely.ai/
-  apiAccountSecretName: SafelyConnectorUser/Test
   hostfullyBaseUrl: https://api.hostfully.com/
