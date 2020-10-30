@@ -11,7 +11,7 @@ cloud:
       static: ${REGION}
 
 safely:
-  pmsRateLimitPerMinute: 17
+  pmsRateLimitPerMinute: 15
   safelyRateLimitPerMinute: 400
   api:
     username: loaded-from-ssm
