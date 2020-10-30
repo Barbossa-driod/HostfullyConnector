@@ -43,7 +43,7 @@ public class SqsListeningService {
   private int inboundQueueVisibility;
   @Value("${safely.queue.outbound.name}")
   private String outboundQueueName;
-  @Value("${safely.pms.apiKey")
+  @Value("${safely.pms.apiKey}")
   private String apiKey;
 
   private final LoadSafelyAuthService loadSafelyAuthService;

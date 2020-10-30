@@ -30,3 +30,7 @@ variable "inbound_queue_visibility" {
 variable "outbound_queue_url" {
   type = string
 }
+
+variable "safely_api_key" {
+  type = string
+}

@@ -42,7 +42,7 @@ This application has a Terraform dependency on the `Legacy Sync Connector`. It m
 ## Local Development Workflow
 
 1. Create feature branch in git `git checkout -b <branchname>`
-2. Run Terraform `plan`/`apply` in `./src/terraform/src` to create branch resources in the development account with the branch name as the prefix
+2. Run Terraform `plan`/`apply` in `./src/terraform/src` to create branch resources in the development account with the branch name as the prefix. After running `plan`/`apply` you will need to log into the AWS Dev Account and update your workspace's SSM parameter for the /safely/pms/apikey to the Safely API key for Hostfully. DO NOT CHECK THE API KEY INTO GIT in the `config/local.tfvars` file.
 3. Code
 4. Run or debug the application
 5. Push branch and create PR

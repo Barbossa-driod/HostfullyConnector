@@ -77,6 +77,7 @@ module "ssm" {
   inbound_queue_url        = module.sqs.inbound_queue_url
   outbound_queue_url       = local.legacy_sync_queue_name
   inbound_queue_visibility = var.inbound_queue_visibility_timeout_seconds
+  safely_api_key           = var.safely_api_key
 }
 
 # SQS

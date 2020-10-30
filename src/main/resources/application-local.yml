@@ -9,4 +9,4 @@ cloud:
 
 safely:
   baseUrl: http://localhost:8080/
-  hostfullyBaseUrl: https://sandbox.hostfully.com/
+  hostfullyBaseUrl: https://api.hostfully.com/

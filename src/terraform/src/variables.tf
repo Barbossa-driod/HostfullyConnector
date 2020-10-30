@@ -71,3 +71,8 @@ variable "inbound_queue_visibility_timeout_seconds" {
   type        = number
   description = "The number of seconds the consumer can processes a message without refreshing the message timeout or finishing before the queue assumes failure"
 }
+
+variable "safely_api_key" {
+  type        = string
+  description = "The Safely API key for Hostfully"
+}

@@ -19,3 +19,4 @@ ecs_desired_count          = 0
 
 spring_profiles_active                   = "local"
 inbound_queue_visibility_timeout_seconds = 180
+safely_api_key                           = "CHANGE ME"

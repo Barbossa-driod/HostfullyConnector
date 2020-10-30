@@ -40,3 +40,14 @@ resource "aws_ssm_parameter" "outbound_queue_url" {
   value = var.outbound_queue_url
   tags  = var.tags
 }
+
+resource "aws_ssm_parameter" "safely_api_key" {
+  name  = "${local.ssm_prefix}/${var.name}/safely/pms/apiKey"
+  type  = "SecureString"
+  value = var.safely_api_key
+  tags  = var.tags
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
