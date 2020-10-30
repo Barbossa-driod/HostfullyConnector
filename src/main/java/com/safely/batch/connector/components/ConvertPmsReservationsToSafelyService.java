@@ -293,6 +293,7 @@ public class ConvertPmsReservationsToSafelyService {
       guestEmail.setEmailAddress(pmsReservation.getEmail());
       guestEmails.add(guestEmail);
     }
+    guest.setGuestEmails(guestEmails);
   }
 
   private void setGuestPhoneNumbers(PmsReservation pmsReservation, Guest guest) {
