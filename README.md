@@ -1,6 +1,6 @@
 # Hostfully Connector
 
-A queue driven integration with the Hostfully PMS API <TODO: Get API Doc URL>. The service will long poll an SQS queue and process messages. Upon completion of a job, the service will send a message to the inbound queue for the `Legacy Sync Connector` in order to trigger a sync between the new data and the legacy portal.
+A queue driven integration with the Hostfully PMS API <https://dev.hostfully.com/reference>. The service will long poll an SQS queue and process messages. Upon completion of a job, the service will send a message to the inbound queue for the `Legacy Sync Connector` in order to trigger a sync between the new data and the legacy portal.
 
 This application has a Terraform dependency on the `Legacy Sync Connector`. It must use `Legacy SYnc Connector`'s remote state in order to get access to the connector's inbound queue so that it can send it messages to trigger runs.
 
