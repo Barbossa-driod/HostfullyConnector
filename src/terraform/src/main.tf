@@ -70,7 +70,7 @@ module "ssm" {
   source     = "./modules/ssm"
   tags       = local.tags
   name       = local.name
-  ssm_prefix = local.service_name
+  ssm_prefix = local.workspace_prefix
 
   safely_api_username      = "safelyconnector"
   safely_api_password      = "th1s1s4u"

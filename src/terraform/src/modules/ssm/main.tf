@@ -1,5 +1,5 @@
 locals {
-  ssm_prefix = "/${var.ssm_prefix}"
+  ssm_prefix = "/${var.ssm_prefix}config"
 }
 
 resource "aws_ssm_parameter" "safely_api_username" {
