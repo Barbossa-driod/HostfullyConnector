@@ -10,8 +10,8 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 
 public class PmsAgency {
-  @JsonProperty("uid")
-  private String id;
-  @JsonProperty("name")
-  private String name;
+    @JsonProperty("uid")
+    private String id;
+    @JsonProperty("name")
+    private String name;
 }

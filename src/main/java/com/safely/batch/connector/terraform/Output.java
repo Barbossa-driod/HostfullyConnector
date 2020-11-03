@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class Output {
 
-  private String value;
-  private String type;
+    private String value;
+    private String type;
 }

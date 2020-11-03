@@ -9,8 +9,8 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PmsReservationAgency {
-  @JsonProperty("uid")
-  private String id;
-  @JsonProperty("name")
-  private String name;
+    @JsonProperty("uid")
+    private String id;
+    @JsonProperty("name")
+    private String name;
 }

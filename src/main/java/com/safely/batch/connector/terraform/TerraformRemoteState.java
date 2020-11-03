@@ -1,10 +1,11 @@
 package com.safely.batch.connector.terraform;
 
-import java.util.Map;
 import lombok.Data;
+
+import java.util.Map;
 
 @Data
 public class TerraformRemoteState {
 
-  private Map<String, Output> outputs;
+    private Map<String, Output> outputs;
 }

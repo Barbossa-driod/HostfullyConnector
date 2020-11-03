@@ -14,59 +14,59 @@ import org.springframework.stereotype.Service;
 @Service
 public class SaveCompletionEventToSafelyService {
 
-  private static final Logger log = LoggerFactory.getLogger(SaveCompletionEventToSafelyService.class);
-  private final SafelyConnectorEventsService eventsService;
+    private static final Logger log = LoggerFactory.getLogger(SaveCompletionEventToSafelyService.class);
+    private final SafelyConnectorEventsService eventsService;
 
-  public SaveCompletionEventToSafelyService(SafelyConnectorEventsService eventsService) {
-    this.eventsService = eventsService;
-  }
-
-  public void execute(JobContext jobContext, EventSeverity eventSeverity) {
-
-    Event event = new Event();
-    event.setEventType(EventType.CONNECTOR);
-    event.setEventSubType(EventSubType.HOSTFULLY);
-
-    event.setEventStatus(EventStatus.COMPLETE);
-    event.setStartTime(jobContext.getStartTime());
-    event.setEndTime(jobContext.getEndTime());
-
-    event.setCreatedReservations(
-        jobContext.getNewReservations() != null ? jobContext.getNewReservations().size() : 0);
-    event.setUpdateReservations(
-        jobContext.getUpdatedReservations() != null ? jobContext.getUpdatedReservations().size()
-            : 0);
-    event.setCancelledReservations(0);
-
-    if (jobContext.getOrganization() != null) {
-      event.setOrganizationId(jobContext.getOrganization().getEntityId());
-      event.setOrganizationName(jobContext.getOrganization().getName());
+    public SaveCompletionEventToSafelyService(SafelyConnectorEventsService eventsService) {
+        this.eventsService = eventsService;
     }
 
-    event.setSeverity(eventSeverity);
-    switch (eventSeverity) {
-      case INFO:
-        event.setDescription("Job completed successfully.");
-        break;
-      case WARNING:
-        event.setDescription("Job completed with errors.");
-        break;
-      case ERROR:
-        event.setDescription("Job failed.");
-        break;
-      default:
-        log.error("Unrecognized event severity: {}", eventSeverity);
+    public void execute(JobContext jobContext, EventSeverity eventSeverity) {
+
+        Event event = new Event();
+        event.setEventType(EventType.CONNECTOR);
+        event.setEventSubType(EventSubType.HOSTFULLY);
+
+        event.setEventStatus(EventStatus.COMPLETE);
+        event.setStartTime(jobContext.getStartTime());
+        event.setEndTime(jobContext.getEndTime());
+
+        event.setCreatedReservations(
+                jobContext.getNewReservations() != null ? jobContext.getNewReservations().size() : 0);
+        event.setUpdateReservations(
+                jobContext.getUpdatedReservations() != null ? jobContext.getUpdatedReservations().size()
+                        : 0);
+        event.setCancelledReservations(0);
+
+        if (jobContext.getOrganization() != null) {
+            event.setOrganizationId(jobContext.getOrganization().getEntityId());
+            event.setOrganizationName(jobContext.getOrganization().getName());
+        }
+
+        event.setSeverity(eventSeverity);
+        switch (eventSeverity) {
+            case INFO:
+                event.setDescription("Job completed successfully.");
+                break;
+            case WARNING:
+                event.setDescription("Job completed with errors.");
+                break;
+            case ERROR:
+                event.setDescription("Job failed.");
+                break;
+            default:
+                log.error("Unrecognized event severity: {}", eventSeverity);
+        }
+
+        event.setJobStatistics(jobContext.getJobStatistics());
+
+        try {
+            eventsService.create(jobContext.getSafelyToken().getIdToken(), event);
+        } catch (Exception ex) {
+            log.error("Event: [{}]", event);
+            log.error("Error while writing Event to API.", ex);
+        }
+
+        log.info("Job completed: [{}]", event);
     }
-
-    event.setJobStatistics(jobContext.getJobStatistics());
-
-    try {
-      eventsService.create(jobContext.getSafelyToken().getIdToken(), event);
-    } catch (Exception ex) {
-      log.error("Event: [{}]", event);
-      log.error("Error while writing Event to API.", ex);
-    }
-
-    log.info("Job completed: [{}]", event);
-  }
 }

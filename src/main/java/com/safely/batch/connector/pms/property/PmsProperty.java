@@ -3,12 +3,11 @@ package com.safely.batch.connector.pms.property;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
-import lombok.Data;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -181,7 +180,7 @@ public class PmsProperty {
     @JsonProperty("airBnBID")
     private String airBnBID;
 
-    public static class type{
+    public static class type {
         public static final String HOUSE = "HOUSE";
         public static final String APARTMENT = "APARTMENT";
         public static final String COTTAGE = "COTTAGE";

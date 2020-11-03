@@ -5,11 +5,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.aws.autoconfigure.context.ContextInstanceDataAutoConfiguration;
 import org.springframework.cloud.aws.autoconfigure.context.ContextResourceLoaderAutoConfiguration;
 
-@SpringBootApplication(exclude = { ContextResourceLoaderAutoConfiguration.class, ContextInstanceDataAutoConfiguration.class })
+@SpringBootApplication(exclude = {ContextResourceLoaderAutoConfiguration.class, ContextInstanceDataAutoConfiguration.class})
 public class Application {
 
-  public static void main(String[] args) {
+    public static void main(String[] args) {
 
-    SpringApplication.run(Application.class, args);
-  }
+        SpringApplication.run(Application.class, args);
+    }
 }

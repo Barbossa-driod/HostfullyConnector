@@ -3,9 +3,9 @@ package com.safely.batch.connector.pms.reservation;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import lombok.Data;
+
+import java.math.BigDecimal;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -101,14 +101,14 @@ public class PmsReservation {
     @JsonProperty("cellphoneNumber")
     private String cellphoneNumber;
 
-    public static class status{
+    public static class status {
         public static final String NEW = "NEW";
         public static final String ON_HOLD = "ON_HOLD";
         public static final String BOOKED = "BOOKED";
         public static final String BLOCKED = "BLOCKED";
     }
 
-    public static class state{
+    public static class state {
         public static final String ALABAMA = "AL";
         public static final String ALASKA = "AK";
         public static final String ARIZONA = "AZ";

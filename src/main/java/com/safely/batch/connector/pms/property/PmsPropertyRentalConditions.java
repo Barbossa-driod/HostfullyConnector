@@ -9,6 +9,6 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PmsPropertyRentalConditions {
-  @JsonProperty("description")
-  private String description;
+    @JsonProperty("description")
+    private String description;
 }

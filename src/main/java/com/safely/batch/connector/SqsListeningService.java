@@ -4,23 +4,7 @@ import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safely.api.domain.enumeration.EventSeverity;
-import com.safely.batch.connector.components.ComputePropertiesChangeListService;
-import com.safely.batch.connector.components.ComputeReservationsChangeListService;
-import com.safely.batch.connector.components.ConvertPmsPropertiesToSafelyService;
-import com.safely.batch.connector.components.ConvertPmsReservationsToSafelyService;
-import com.safely.batch.connector.components.LoadOrganizationService;
-import com.safely.batch.connector.components.LoadPmsPropertiesService;
-import com.safely.batch.connector.components.LoadPmsReservationsService;
-import com.safely.batch.connector.components.LoadPropertiesFromSafelyService;
-import com.safely.batch.connector.components.LoadReservationsFromSafelyService;
-import com.safely.batch.connector.components.LoadSafelyAuthService;
-import com.safely.batch.connector.components.SaveCompletionEventToSafelyService;
-import com.safely.batch.connector.components.SavePropertiesToSafelyService;
-import com.safely.batch.connector.components.SaveReservationsToSafelyService;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import com.safely.batch.connector.components.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,197 +14,204 @@ import org.springframework.cloud.aws.messaging.listener.Visibility;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
 @Service
 public class SqsListeningService {
 
-  private static final Logger log = LoggerFactory.getLogger(SqsListeningService.class);
+    private static final Logger log = LoggerFactory.getLogger(SqsListeningService.class);
+    private final LoadSafelyAuthService loadSafelyAuthService;
+    private final LoadOrganizationService loadOrganizationService;
+    private final LoadPmsPropertiesService loadPmsPropertiesService;
+    private final LoadPmsReservationsService loadPmsReservationsService;
+    private final ConvertPmsPropertiesToSafelyService convertPmsPropertiesToSafelyService;
+    private final ConvertPmsReservationsToSafelyService convertPmsReservationsToSafelyService;
+    private final LoadPropertiesFromSafelyService loadPropertiesFromSafelyService;
+    private final LoadReservationsFromSafelyService loadReservationsFromSafelyService;
+    private final ComputePropertiesChangeListService computePropertiesChangeListService;
+    private final ComputeReservationsChangeListService computeReservationsChangeListService;
+    private final SavePropertiesToSafelyService savePropertiesToSafelyService;
+    private final SaveReservationsToSafelyService saveReservationsToSafelyService;
+    private final SaveCompletionEventToSafelyService saveCompletionEventToSafelyService;
+    private final ObjectMapper objectMapper;
+    private final AmazonSQSAsync amazonSqsAsync;
+    @Value("${safely.api.username}")
+    private String apiUsername;
+    @Value("${safely.api.password}")
+    private String apiPassword;
+    @Value("${safely.queue.inbound.visibility}")
+    private int inboundQueueVisibility;
+    @Value("${safely.queue.outbound.name}")
+    private String outboundQueueName;
+    @Value("${safely.pms.apiKey}")
+    private String apiKey;
 
-  @Value("${safely.api.username}")
-  private String apiUsername;
-  @Value("${safely.api.password}")
-  private String apiPassword;
-  @Value("${safely.queue.inbound.visibility}")
-  private int inboundQueueVisibility;
-  @Value("${safely.queue.outbound.name}")
-  private String outboundQueueName;
-  @Value("${safely.pms.apiKey}")
-  private String apiKey;
+    public SqsListeningService(LoadSafelyAuthService loadSafelyAuthService,
+                               LoadOrganizationService loadOrganizationService,
+                               LoadPmsPropertiesService loadPmsPropertiesService,
+                               LoadPmsReservationsService loadPmsReservationsService,
+                               ConvertPmsPropertiesToSafelyService convertPmsPropertiesToSafelyService,
+                               ConvertPmsReservationsToSafelyService convertPmsReservationsToSafelyService,
+                               LoadPropertiesFromSafelyService loadPropertiesFromSafelyService,
+                               LoadReservationsFromSafelyService loadReservationsFromSafelyService,
+                               ComputePropertiesChangeListService computePropertiesChangeListService,
+                               ComputeReservationsChangeListService computeReservationsChangeListService,
+                               SavePropertiesToSafelyService savePropertiesToSafelyService,
+                               SaveReservationsToSafelyService saveReservationsToSafelyService,
+                               SaveCompletionEventToSafelyService saveCompletionEventToSafelyService,
+                               ObjectMapper objectMapper, AmazonSQSAsync amazonSqsAsync) {
+        this.loadSafelyAuthService = loadSafelyAuthService;
+        this.loadOrganizationService = loadOrganizationService;
+        this.loadPmsPropertiesService = loadPmsPropertiesService;
+        this.loadPmsReservationsService = loadPmsReservationsService;
+        this.convertPmsPropertiesToSafelyService = convertPmsPropertiesToSafelyService;
+        this.convertPmsReservationsToSafelyService = convertPmsReservationsToSafelyService;
+        this.loadPropertiesFromSafelyService = loadPropertiesFromSafelyService;
+        this.loadReservationsFromSafelyService = loadReservationsFromSafelyService;
+        this.computePropertiesChangeListService = computePropertiesChangeListService;
+        this.computeReservationsChangeListService = computeReservationsChangeListService;
+        this.savePropertiesToSafelyService = savePropertiesToSafelyService;
+        this.saveReservationsToSafelyService = saveReservationsToSafelyService;
+        this.saveCompletionEventToSafelyService = saveCompletionEventToSafelyService;
+        this.objectMapper = objectMapper;
+        this.amazonSqsAsync = amazonSqsAsync;
+    }
 
-  private final LoadSafelyAuthService loadSafelyAuthService;
-  private final LoadOrganizationService loadOrganizationService;
-  private final LoadPmsPropertiesService loadPmsPropertiesService;
-  private final LoadPmsReservationsService loadPmsReservationsService;
-  private final ConvertPmsPropertiesToSafelyService convertPmsPropertiesToSafelyService;
-  private final ConvertPmsReservationsToSafelyService convertPmsReservationsToSafelyService;
-  private final LoadPropertiesFromSafelyService loadPropertiesFromSafelyService;
-  private final LoadReservationsFromSafelyService loadReservationsFromSafelyService;
-  private final ComputePropertiesChangeListService computePropertiesChangeListService;
-  private final ComputeReservationsChangeListService computeReservationsChangeListService;
-  private final SavePropertiesToSafelyService savePropertiesToSafelyService;
-  private final SaveReservationsToSafelyService saveReservationsToSafelyService;
-  private final SaveCompletionEventToSafelyService saveCompletionEventToSafelyService;
-  private final ObjectMapper objectMapper;
-  private final AmazonSQSAsync amazonSQSAsync;
+    @SqsListener(value = "${safely.queue.inbound.name}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+    public void receiveMessage(String messageJson, Visibility visibility, Acknowledgment acknowledgment) {
 
-  public SqsListeningService(LoadSafelyAuthService loadSafelyAuthService,
-      LoadOrganizationService loadOrganizationService,
-      LoadPmsPropertiesService loadPmsPropertiesService,
-      LoadPmsReservationsService loadPmsReservationsService,
-      ConvertPmsPropertiesToSafelyService convertPmsPropertiesToSafelyService,
-      ConvertPmsReservationsToSafelyService convertPmsReservationsToSafelyService,
-      LoadPropertiesFromSafelyService loadPropertiesFromSafelyService,
-      LoadReservationsFromSafelyService loadReservationsFromSafelyService,
-      ComputePropertiesChangeListService computePropertiesChangeListService,
-      ComputeReservationsChangeListService computeReservationsChangeListService,
-      SavePropertiesToSafelyService savePropertiesToSafelyService,
-      SaveReservationsToSafelyService saveReservationsToSafelyService,
-      SaveCompletionEventToSafelyService saveCompletionEventToSafelyService,
-      ObjectMapper objectMapper, AmazonSQSAsync amazonSQSAsync) {
-    this.loadSafelyAuthService = loadSafelyAuthService;
-    this.loadOrganizationService = loadOrganizationService;
-    this.loadPmsPropertiesService = loadPmsPropertiesService;
-    this.loadPmsReservationsService = loadPmsReservationsService;
-    this.convertPmsPropertiesToSafelyService = convertPmsPropertiesToSafelyService;
-    this.convertPmsReservationsToSafelyService = convertPmsReservationsToSafelyService;
-    this.loadPropertiesFromSafelyService = loadPropertiesFromSafelyService;
-    this.loadReservationsFromSafelyService = loadReservationsFromSafelyService;
-    this.computePropertiesChangeListService = computePropertiesChangeListService;
-    this.computeReservationsChangeListService = computeReservationsChangeListService;
-    this.savePropertiesToSafelyService = savePropertiesToSafelyService;
-    this.saveReservationsToSafelyService = saveReservationsToSafelyService;
-    this.saveCompletionEventToSafelyService = saveCompletionEventToSafelyService;
-    this.objectMapper = objectMapper;
-    this.amazonSQSAsync = amazonSQSAsync;
-  }
+        LocalDateTime startTime = LocalDateTime.now();
+        JobContext jobContext = new JobContext();
+        jobContext.setStartTime(startTime);
 
-  @SqsListener(value = "${safely.queue.inbound.name}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
-  public void receiveMessage(String messageJson, Visibility visibility,
-      Acknowledgment acknowledgment) {
+        EventSeverity eventSeverity = EventSeverity.INFO;
 
-    LocalDateTime startTime = LocalDateTime.now();
-    JobContext jobContext = new JobContext();
-    jobContext.setStartTime(startTime);
+        try {
+            // get organizationId from message
+            ConnectorMessage message = objectMapper.readValue(messageJson, ConnectorMessage.class);
+            String organizationId = message.getOrganizationId();
 
-    EventSeverity eventSeverity = EventSeverity.INFO;
+            log.info("Processing message for Organization Id: {} at UTC: {}. Message created on: {}",
+                    organizationId, jobContext.getStartTime(), message.getCreateDate());
 
-    try {
-      // get organizationId from message
-      ConnectorMessage message = objectMapper.readValue(messageJson, ConnectorMessage.class);
-      String organizationId = message.getOrganizationId();
+            // setup for this run
+            loadSafelyAuthService.execute(jobContext, apiUsername, apiPassword);
+            loadOrganizationService.execute(jobContext, organizationId);
 
-      log.info("Processing message for Organization Id: {} at UTC: {}. Message created on: {}",
-          organizationId, jobContext.getStartTime(), message.getCreateDate());
+            // load data from the PMS API
+            refreshVisibility(visibility, startTime, 180);
+            loadPmsPropertiesService.execute(jobContext, apiKey);
+            refreshVisibility(visibility, startTime, 180);
+            loadPmsReservationsService.execute(jobContext, apiKey);
 
-      // setup for this run
-      loadSafelyAuthService.execute(jobContext, apiUsername, apiPassword);
-      loadOrganizationService.execute(jobContext, organizationId);
+            // convert PMS data to Safely format
+            convertPmsPropertiesToSafelyService.execute(jobContext);
+            convertPmsReservationsToSafelyService.execute(jobContext);
 
-      // load data from the PMS API
-      refreshVisibility(visibility, startTime, 180);
-      loadPmsPropertiesService.execute(jobContext, apiKey);
-      refreshVisibility(visibility, startTime, 180);
-      loadPmsReservationsService.execute(jobContext, apiKey);
+            // load previous data
+            refreshVisibility(visibility, startTime, jobContext.getPmsProperties().size());
+            loadPropertiesFromSafelyService.execute(jobContext);
+            refreshVisibility(visibility, startTime, jobContext.getPmsReservations().size());
+            loadReservationsFromSafelyService.execute(jobContext);
 
-      // convert PMS data to Safely format
-      convertPmsPropertiesToSafelyService.execute(jobContext);
-      convertPmsReservationsToSafelyService.execute(jobContext);
+            // compare previous data to new data for changes
+            computePropertiesChangeListService.execute(jobContext);
+            computeReservationsChangeListService.execute(jobContext);
 
-      // load previous data
-      refreshVisibility(visibility, startTime, jobContext.getPmsProperties().size());
-      loadPropertiesFromSafelyService.execute(jobContext);
-      refreshVisibility(visibility, startTime, jobContext.getPmsReservations().size());
-      loadReservationsFromSafelyService.execute(jobContext);
+            // save any changes
+            int propertyCount =
+                    jobContext.getNewProperties().size() + jobContext.getUpdatedProperties().size();
+            refreshVisibility(visibility, startTime,
+                    propertyCount); // assume one second per property to save
+            savePropertiesToSafelyService.execute(jobContext);
 
-      // compare previous data to new data for changes
-      computePropertiesChangeListService.execute(jobContext);
-      computeReservationsChangeListService.execute(jobContext);
+            int reservationCount =
+                    jobContext.getNewReservations().size() + jobContext.getUpdatedReservations().size();
+            refreshVisibility(visibility, startTime, reservationCount);
+            saveReservationsToSafelyService.execute(jobContext);
 
-      // save any changes
-      int propertyCount =
-          jobContext.getNewProperties().size() + jobContext.getUpdatedProperties().size();
-      refreshVisibility(visibility, startTime,
-          propertyCount); // assume one second per property to save
-      savePropertiesToSafelyService.execute(jobContext);
+            // if any step reported any failures, mark severity as warning
+            if (jobContext.getJobStatistics() != null) {
+                for (Map.Entry<String, Map<String, Object>> entry : jobContext.getJobStatistics()
+                        .entrySet()) {
+                    Map<String, Object> map = entry.getValue();
+                    if (map.containsKey("failed") && (int) map.get("failed") > 0) {
+                        eventSeverity = EventSeverity.WARNING;
+                        break;
+                    }
+                }
+            }
 
-      int reservationCount =
-          jobContext.getNewReservations().size() + jobContext.getUpdatedReservations().size();
-      refreshVisibility(visibility, startTime, reservationCount);
-      saveReservationsToSafelyService.execute(jobContext);
+            // send a message to legacy sync
+            sendMessageToQueue(organizationId);
 
-      // if any step reported any failures, mark severity as warning
-      if (jobContext.getJobStatistics() != null) {
-        for (Map.Entry<String, Map<String, Object>> entry : jobContext.getJobStatistics()
-            .entrySet()) {
-          Map<String, Object> map = entry.getValue();
-          if (map.containsKey("failed") && (int) map.get("failed") > 0) {
-            eventSeverity = EventSeverity.WARNING;
-            break;
-          }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            eventSeverity = EventSeverity.ERROR;
+        } finally {
+            // exceptions in save event are handled
+            jobContext.setEndTime(LocalDateTime.now());
+            saveCompletionEventToSafelyService.execute(jobContext, eventSeverity);
         }
-      }
 
-      // send a message to legacy sync
-      sendMessageToQueue(organizationId);
-
-    } catch (Exception ex) {
-      log.error(ex.getMessage(), ex);
-      eventSeverity = EventSeverity.ERROR;
-    } finally {
-      // exceptions in save event are handled
-      jobContext.setEndTime(LocalDateTime.now());
-      saveCompletionEventToSafelyService.execute(jobContext, eventSeverity);
+        try {
+            switch (eventSeverity) {
+                case INFO:
+                case WARNING:
+                    log.info("Job completed with status {}. Removing message from queue.", eventSeverity);
+                    acknowledgment.acknowledge().get();
+                    break;
+                case ERROR:
+                    log.info(
+                            "Job completed with status {}. Allowing the message to time out back into the queue.",
+                            eventSeverity);
+                    break;
+                default:
+                    log.error("Unrecognized event severity: {}", eventSeverity);
+            }
+        } catch (Exception ex) {
+            log.error("Error while trying to clean up a message.");
+            log.error(ex.getMessage(), ex);
+        }
     }
 
-    try {
-      switch (eventSeverity) {
-        case INFO:
-        case WARNING:
-          log.info("Job completed with status {}. Removing message from queue.", eventSeverity);
-          acknowledgment.acknowledge().get();
-          break;
-        case ERROR:
-          log.info(
-              "Job completed with status {}. Allowing the message to time out back into the queue.",
-              eventSeverity);
-          break;
-        default:
-          log.error("Unrecognized event severity: {}", eventSeverity);
-      }
-    } catch (Exception ex) {
-      log.error("Error while trying to clean up a message.");
-      log.error(ex.getMessage(), ex);
+    private void sendMessageToQueue(String organizationId) {
+
+        log.info("Sending message for organizationId: {} to queue: '{}'", organizationId,
+                outboundQueueName);
+
+        LocalDateTime createDate = LocalDateTime.now();
+        try {
+            ConnectorMessage message = new ConnectorMessage();
+            message.setOrganizationId(organizationId);
+            message.setCreateDate(createDate);
+
+            String messageAsJsonString = objectMapper.writeValueAsString(message);
+
+            SendMessageRequest sendMessageRequest = new SendMessageRequest()
+                    .withQueueUrl(outboundQueueName)
+                    .withMessageBody(messageAsJsonString);
+
+            this.amazonSqsAsync.sendMessage(sendMessageRequest);
+        } catch (Exception ex) {
+            log.error("Error while sending a message to queue.", ex);
+        }
     }
-  }
 
-  private void sendMessageToQueue(String organizationId) {
-
-    log.info("Sending message for organizationId: {} to queue: '{}'", organizationId,
-        outboundQueueName);
-
-    LocalDateTime createDate = LocalDateTime.now();
-    try {
-      ConnectorMessage message = new ConnectorMessage();
-      message.setOrganizationId(organizationId);
-      message.setCreateDate(createDate);
-
-      String messageAsJsonString = objectMapper.writeValueAsString(message);
-
-      SendMessageRequest sendMessageRequest = new SendMessageRequest()
-          .withQueueUrl(outboundQueueName)
-          .withMessageBody(messageAsJsonString);
-
-      this.amazonSQSAsync.sendMessage(sendMessageRequest);
-    } catch (Exception ex) {
-      log.error("Error while sending a message to queue.", ex);
+    private void refreshVisibility(Visibility visibility, LocalDateTime startTIme, int additionalSeconds) throws ExecutionException, InterruptedException {
+        int secondsToAdd = getVisibilityUpdateValue(additionalSeconds);
+        int lengthOfJobInSeconds = (int) ChronoUnit.SECONDS.between(startTIme, LocalDateTime.now());
+        if (inboundQueueVisibility - lengthOfJobInSeconds <= secondsToAdd) {
+            visibility.extend(secondsToAdd).get();
+            inboundQueueVisibility += secondsToAdd;
+        }
     }
-  }
 
-  private void refreshVisibility(Visibility visibility, LocalDateTime startTIme,
-      int additionalSeconds) throws ExecutionException, InterruptedException {
-    int lengthOfJobInSeconds = (int) ChronoUnit.SECONDS.between(startTIme, LocalDateTime.now());
-    if (inboundQueueVisibility - lengthOfJobInSeconds <= additionalSeconds) {
-      visibility.extend(additionalSeconds).get();
-      inboundQueueVisibility += additionalSeconds;
+    private int getVisibilityUpdateValue(int desiredSeconds) {
+        final int maxSeconds = 60 * 60 * 12; // 12 hours is max allowed by sqs
+        return Math.min(desiredSeconds, maxSeconds);
     }
-  }
 }
