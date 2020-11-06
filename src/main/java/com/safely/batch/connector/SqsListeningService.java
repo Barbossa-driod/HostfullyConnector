@@ -38,6 +38,9 @@ public class SqsListeningService {
     private final SaveCompletionEventToSafelyService saveCompletionEventToSafelyService;
     private final ObjectMapper objectMapper;
     private final AmazonSQSAsync amazonSqsAsync;
+
+    final int maxSeconds = 60 * 60 * 12; // 12 hours is max allowed by sqs
+
     @Value("${safely.api.username}")
     private String apiUsername;
     @Value("${safely.api.password}")
@@ -202,16 +205,11 @@ public class SqsListeningService {
     }
 
     private void refreshVisibility(Visibility visibility, LocalDateTime startTIme, int additionalSeconds) throws ExecutionException, InterruptedException {
-        int secondsToAdd = getVisibilityUpdateValue(additionalSeconds);
         int lengthOfJobInSeconds = (int) ChronoUnit.SECONDS.between(startTIme, LocalDateTime.now());
-        if (inboundQueueVisibility - lengthOfJobInSeconds <= secondsToAdd) {
-            visibility.extend(secondsToAdd).get();
-            inboundQueueVisibility += secondsToAdd;
-        }
-    }
-
-    private int getVisibilityUpdateValue(int desiredSeconds) {
-        final int maxSeconds = 60 * 60 * 12; // 12 hours is max allowed by sqs
-        return Math.min(desiredSeconds, maxSeconds);
+        int secondsLeftInVisibility = inboundQueueVisibility - lengthOfJobInSeconds;
+        int maxAllowedSecondsToAdd = maxSeconds - secondsLeftInVisibility;
+        int finalSecondsToAdd = Math.min(maxAllowedSecondsToAdd, additionalSeconds);
+        visibility.extend(finalSecondsToAdd).get();
+        inboundQueueVisibility += finalSecondsToAdd;
     }
 }
