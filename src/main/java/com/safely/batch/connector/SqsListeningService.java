@@ -208,8 +208,11 @@ public class SqsListeningService {
         int lengthOfJobInSeconds = (int) ChronoUnit.SECONDS.between(startTIme, LocalDateTime.now());
         int secondsLeftInVisibility = inboundQueueVisibility - lengthOfJobInSeconds;
         int maxAllowedSecondsToAdd = maxSeconds - secondsLeftInVisibility;
-        int finalSecondsToAdd = Math.min(maxAllowedSecondsToAdd, additionalSeconds);
-        visibility.extend(finalSecondsToAdd).get();
-        inboundQueueVisibility += finalSecondsToAdd;
+        int finalSecondsToAdd = Math.max(Math.min(maxAllowedSecondsToAdd, additionalSeconds), 0);
+        log.info("Message visibility timeout refresh. Current Length of Job: {} Seconds Left in Visibility: {}, Seconds to Add: {} Final Seconds to Add: {}", lengthOfJobInSeconds, secondsLeftInVisibility, additionalSeconds, finalSecondsToAdd);
+        if (finalSecondsToAdd > secondsLeftInVisibility) {
+            visibility.extend(finalSecondsToAdd).get();
+            inboundQueueVisibility += finalSecondsToAdd;
+        }
     }
 }
