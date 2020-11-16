@@ -12,7 +12,7 @@ cloud:
 
 safely:
   pmsRateLimitPerMinute: 15
-  safelyRateLimitPerMinute: 400
+  safelyRateLimitPerMinute: 100
   api:
     username: loaded-from-ssm
     password: loaded-from-ssm
