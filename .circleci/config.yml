@@ -280,9 +280,6 @@ workflows:
       # Terraform
       - "Terraform Lint":
           skip: <<pipeline.parameters.skip_build>>
-          context: 
-            - slack
-          <<: *slack-fail-post-step
 
       - "Terraform Speculative Plan":
           requires:
@@ -291,9 +288,6 @@ workflows:
             branches:
               ignore: master
           skip: <<pipeline.parameters.skip_build>>
-          context: 
-            - slack
-          <<: *slack-fail-post-step
 
       # Connector
       - "Build and Test":
