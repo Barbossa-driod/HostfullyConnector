@@ -52,35 +52,6 @@ slack-fail-post-step: &slack-fail-post-step
               }
             ]
           }
-    - slack/notify:
-        event: pass
-        custom: |
-          {
-            "text": "",
-            "blocks": [
-              {
-                "type": "section",
-                "text": {
-                  "type": "plain_text",
-                  "text": ":white_check_mark: *Success* Build Number: #${CIRCLE_BUILD_NUM} :white_check_mark:",
-                  "emoji": true
-                }
-              },
-              {
-                "type": "actions",
-                "elements": [
-                  {
-                    "type": "button",
-                    "text": {
-                      "type": "plain_text",
-                      "text": "View Job"
-                    },
-                    "url": "${CIRCLE_BUILD_URL}"
-                  }
-                ]
-              }
-            ]
-          }
     
 parameters:
   version:
