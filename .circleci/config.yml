@@ -13,7 +13,7 @@ slack-fail-post-step: &slack-fail-post-step
             "text": "",
             "blocks": [
               {
-                "type": "section",
+                "type": "header",
                 "text": {
                   "type": "plain_text",
                   "text": ":x: *Failed* Build Number: #${CIRCLE_BUILD_NUM} :x:",
@@ -25,15 +25,15 @@ slack-fail-post-step: &slack-fail-post-step
                 "fields": [
                   {
                     "type": "mrkdwn",
-                    "text": "*Repository*: \\n${CIRCLE_PROJECT_REPONAME}"
+                    "text": "*Repository*:\n$CIRCLE_PROJECT_REPONAME"
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "*Branch*:\\n${CIRCLE_BRANCH}"
+                    "text": "*Branch*:\n$CIRCLE_BRANCH"
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "*Author*:\\n${CIRCLE_USERNAME}"
+                    "text": "*Author*:\n$CIRCLE_USERNAME"
                   }
                 ]
               },
@@ -421,15 +421,15 @@ workflows:
                         "fields": [
                           {
                             "type": "mrkdwn",
-                            "text": "*Repository*: \\n${CIRCLE_PROJECT_REPONAME}"
+                            "text": "*Repository*:\n$CIRCLE_PROJECT_REPONAME"
                           },
                           {
                             "type": "mrkdwn",
-                            "text": "*Branch*:\\n${CIRCLE_BRANCH}"
+                            "text": "*Branch*:\n$CIRCLE_BRANCH"
                           },
                           {
                             "type": "mrkdwn",
-                            "text": "*Author*:\\n${CIRCLE_USERNAME}"
+                            "text": "*Author*:\n$CIRCLE_USERNAME"
                           }
                         ]
                       },
