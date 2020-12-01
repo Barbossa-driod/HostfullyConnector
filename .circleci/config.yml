@@ -2,6 +2,41 @@ version: 2.1
 
 orbs:
   aws-cli: circleci/aws-cli@1.3.0
+  slack: circleci/slack@4.1.3
+
+slack-fail-post-step: &slack-fail-post-step
+  post-steps:
+    - slack/notify:
+      event: fail
+      template: base_fail_1
+    - slack/notify:
+      event: pass
+      custom: |
+        {
+          "text": "",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "✅ *Success* #${CIRCLE_BUILD_NUM} `${CIRCLE_PROJECT_REPONAME}` on `${CIRCLE_BRANCH}`"
+              }
+            },
+            {
+              "type": "actions",
+              "elements": [
+                {
+                  "type": "button",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "View Job"
+                  },
+                  "url": "${CIRCLE_BUILD_URL}"
+                }
+              ]
+            }
+          ]
+        }
 
 parameters:
   version:
@@ -245,6 +280,10 @@ workflows:
       # Terraform
       - "Terraform Lint":
           skip: <<pipeline.parameters.skip_build>>
+          context: 
+            - slack
+          <<: *slack-fail-post-step
+
       - "Terraform Speculative Plan":
           requires:
             - "Terraform Lint"
@@ -252,10 +291,17 @@ workflows:
             branches:
               ignore: master
           skip: <<pipeline.parameters.skip_build>>
+          context: 
+            - slack
+          <<: *slack-fail-post-step
 
       # Connector
       - "Build and Test":
           skip: <<pipeline.parameters.skip_build>>
+          context: 
+            - slack
+          <<: *slack-fail-post-step
+
       - "Docker Build and Push":
           requires:
             - "Build and Test"
@@ -263,6 +309,10 @@ workflows:
             branches:
               only: master
           skip: <<pipeline.parameters.skip_build>>
+          context: 
+            - slack
+          <<: *slack-fail-post-step
+          
 
       #################################
       ############# Deploy ############
@@ -272,6 +322,9 @@ workflows:
       # Terraform and Connector
       - "Deploy Connector":
           name: Deploy Connector (dev)
+          context: 
+            - slack
+          <<: *slack-fail-post-step
           requires:
             - "Terraform Lint"
             - "Docker Build and Push"
@@ -287,6 +340,9 @@ workflows:
       # Terraform and Connector
       - "Deploy Connector":
           name: Deploy Connector (test)
+          context: 
+            - slack
+          <<: *slack-fail-post-step
           requires:
             - "Deploy Connector (dev)"
           filters:
@@ -301,11 +357,69 @@ workflows:
       # Terraform and Connector
       - "Deploy Connector":
           name: Deploy Connector (prod)
+          context: [slack]
           requires:
             - "Deploy Connector (test)"
           filters:
             branches:
               only: master
+          post-steps:
+            - slack/notify
+              event: fail
+              custom: |
+                {
+                  "text": "",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "❌ *Failure* #${CIRCLE_BUILD_NUM} `${CIRCLE_PROJECT_REPONAME}` on `${CIRCLE_BRANCH}`"
+                      }
+                    },
+                    {
+                      "type": "actions",
+                      "elements": [
+                        {
+                          "type": "button",
+                          "text": {
+                            "type": "plain_text",
+                            "text": "View Job"
+                          },
+                          "url": "${CIRCLE_BUILD_URL}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+            - slack/notify
+              event: pass
+              custom: |
+                {
+                  "text": "",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "✅ *Success* #${CIRCLE_BUILD_NUM} `${CIRCLE_PROJECT_REPONAME}` on `${CIRCLE_BRANCH}`"
+                      }
+                    },
+                    {
+                      "type": "actions",
+                      "elements": [
+                        {
+                          "type": "button",
+                          "text": {
+                            "type": "plain_text",
+                            "text": "View Job"
+                          },
+                          "url": "${CIRCLE_BUILD_URL}"
+                        }
+                      ]
+                    }
+                  ]
+                }
           # Parameters
           skip: <<pipeline.parameters.skip_prod_deploy>>
           version: <<pipeline.parameters.version>>
