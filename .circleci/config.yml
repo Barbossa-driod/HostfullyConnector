@@ -15,7 +15,7 @@ slack-fail-post-step: &slack-fail-post-step
               {
                 "type": "section",
                 "text": {
-                  "type": "mrkdwn",
+                  "type": "plain_text",
                   "text": ":x: *Failed* Build Number: #${CIRCLE_BUILD_NUM} :x:",
                   "emoji": true
                 }
@@ -61,7 +61,7 @@ slack-fail-post-step: &slack-fail-post-step
               {
                 "type": "section",
                 "text": {
-                  "type": "mrkdwn",
+                  "type": "plain_text",
                   "text": ":white_check_mark: *Success* Build Number: #${CIRCLE_BUILD_NUM} :white_check_mark:",
                   "emoji": true
                 }
@@ -411,7 +411,7 @@ workflows:
                       {
                         "type": "section",
                         "text": {
-                          "type": "mrkdwn",
+                          "type": "plain_text",
                           "text": ":x: *Failed* Build Number: #${CIRCLE_BUILD_NUM} :x:",
                           "emoji": true
                         }
