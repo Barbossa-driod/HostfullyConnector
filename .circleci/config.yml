@@ -9,6 +9,9 @@ slack-fail-post-step: &slack-fail-post-step
     - slack/notify:
         event: fail
         template: base_fail_1
+    - slack/notify:
+        event: pass
+        template: base_fail_1
     
 parameters:
   version:
