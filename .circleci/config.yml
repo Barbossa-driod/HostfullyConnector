@@ -16,7 +16,7 @@ slack-fail-post-step: &slack-fail-post-step
                 "type": "header",
                 "text": {
                   "type": "plain_text",
-                  "text": ":x: *Failed* Build Number: #${CIRCLE_BUILD_NUM} :x:",
+                  "text": ":x: *Failed* ${CIRCLE_PROJECT_REPONAME} #${CIRCLE_BUILD_NUM} :x:",
                   "emoji": true
                 }
               },
@@ -383,7 +383,7 @@ workflows:
                         "type": "section",
                         "text": {
                           "type": "plain_text",
-                          "text": ":x: *Failed* Build Number: #${CIRCLE_BUILD_NUM} :x:",
+                          "text": ":x: *Failed* ${CIRCLE_PROJECT_REPONAME} #${CIRCLE_BUILD_NUM} :x:",
                           "emoji": true
                         }
                       },
