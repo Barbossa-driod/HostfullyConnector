@@ -16,8 +16,26 @@ slack-fail-post-step: &slack-fail-post-step
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "❌ *Failure* #${CIRCLE_BUILD_NUM} `${CIRCLE_PROJECT_REPONAME}` on `${CIRCLE_BRANCH}`"
+                  "text": ":x: *Failed* Build Number: #${CIRCLE_BUILD_NUM} :x:",
+                  "emoji": true
                 }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Repository*: \\n$CIRCLE_PROJECT_REPONAME"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Branch*:\\n$CIRCLE_BRANCH"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Author*:\\n$CIRCLE_USERNAME"
+                  }
+                ]
               },
               {
                 "type": "actions",
@@ -44,7 +62,8 @@ slack-fail-post-step: &slack-fail-post-step
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "✅ *Success* #${CIRCLE_BUILD_NUM} `${CIRCLE_PROJECT_REPONAME}` on `${CIRCLE_BRANCH}`"
+                  "text": ":white_check_mark: *Success* Build Number: #${CIRCLE_BUILD_NUM} :white_check_mark:",
+                  "emoji": true
                 }
               },
               {
@@ -385,7 +404,50 @@ workflows:
           post-steps:
             - slack/notify:
                 event: fail
-                template: basic_fail_1
+                custom: |
+                  {
+                    "text": "",
+                    "blocks": [
+                      {
+                        "type": "section",
+                        "text": {
+                          "type": "mrkdwn",
+                          "text": ":x: *Failed* Build Number: #${CIRCLE_BUILD_NUM} :x:",
+                          "emoji": true
+                        }
+                      },
+                      {
+                        "type": "section",
+                        "fields": [
+                          {
+                            "type": "mrkdwn",
+                            "text": "*Repository*: \\n$CIRCLE_PROJECT_REPONAME"
+                          },
+                          {
+                            "type": "mrkdwn",
+                            "text": "*Branch*:\\n$CIRCLE_BRANCH"
+                          },
+                          {
+                            "type": "mrkdwn",
+                            "text": "*Author*:\\n$CIRCLE_USERNAME"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "actions",
+                        "elements": [
+                          {
+                            "type": "button",
+                            "text": {
+                              "type": "plain_text",
+                              "text": "View Job"
+                            },
+                            "url": "${CIRCLE_BUILD_URL}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
           # Parameters
           skip: <<pipeline.parameters.skip_prod_deploy>>
           version: <<pipeline.parameters.version>>
