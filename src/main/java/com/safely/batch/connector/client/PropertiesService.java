@@ -45,9 +45,14 @@ public class PropertiesService {
             Call<PmsProperty> apiCall = propertiesV1ApiClient.getProperty(token, propertyId, agencyUid);
             Response<PmsProperty> response = apiCall.execute();
 
-            if (!response.isSuccessful()) {
+            if (!response.isSuccessful() && response.code() != 409) {
                 log.error("GetProperty call failed! Error Code: {}", response.code());
                 throw new Exception(response.message());
+            }
+            
+            if (response.code() == 409) {
+                log.info("GetProperty call failed, because property id={} has been removed from Hostfully system", propertyId);
+                return null;
             }
 
             return response.body();

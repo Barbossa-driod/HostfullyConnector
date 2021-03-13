@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -33,13 +34,13 @@ public class PmsReservation {
     private String source;
 
     @JsonProperty("checkInDate")
-    private String checkInDate;
+    private LocalDate checkInDate;
 
     @JsonProperty("uid")
     private String uid;
 
     @JsonProperty("checkOutDate")
-    private String checkOutDate;
+    private LocalDate checkOutDate;
 
     @JsonProperty("countryCode")
     private String countryCode;
@@ -101,14 +102,22 @@ public class PmsReservation {
     @JsonProperty("cellphoneNumber")
     private String cellphoneNumber;
 
-    public static class status {
+    public static class PMSReservationStatus {
         public static final String NEW = "NEW";
         public static final String ON_HOLD = "ON_HOLD";
         public static final String BOOKED = "BOOKED";
         public static final String BLOCKED = "BLOCKED";
+        public static final String DECLINED = "DECLINED";
+        public static final String IGNORED = "IGNORED";
+        public static final String PAID_IN_FULL = "PAID_IN_FULL";
+        public static final String PENDING = "PENDING";
+        public static final String CANCELLED_BY_TRAVELER = "CANCELLED_BY_TRAVELER";
+        public static final String CANCELLED_BY_OWNER = "CANCELLED_BY_OWNER";
+        public static final String HOLD_EXPIRED = "HOLD_EXPIRED";
+        public static final String CANCELLED = "CANCELLED";
     }
 
-    public static class state {
+    public static class PMSReservationState {
         public static final String ALABAMA = "AL";
         public static final String ALASKA = "AK";
         public static final String ARIZONA = "AZ";
@@ -159,6 +168,47 @@ public class PmsReservation {
         public static final String WEST_VIRGINIA = "WV";
         public static final String WISCONSIN = "WI";
         public static final String WYOMING = "WY";
+    }
+    
+    public boolean isActive() {
+    	switch (status) {
+    	case PMSReservationStatus.NEW:
+    	case PMSReservationStatus.BOOKED:
+    	case PMSReservationStatus.PAID_IN_FULL:
+    	case PMSReservationStatus.PENDING:
+    		return true;
+    	case PMSReservationStatus.ON_HOLD:
+    	case PMSReservationStatus.BLOCKED:
+    	case PMSReservationStatus.DECLINED:
+    	case PMSReservationStatus.IGNORED:
+    	case PMSReservationStatus.CANCELLED_BY_TRAVELER:
+    	case PMSReservationStatus.CANCELLED_BY_OWNER:
+    	case PMSReservationStatus.HOLD_EXPIRED:
+    	case PMSReservationStatus.CANCELLED:
+    		return false;
+    	}
+    	return false;
+    }
+    
+    public boolean isPending() {
+    	if (checkInDate != null) {
+    		return checkInDate.isAfter(LocalDate.now());
+    	}
+    	return false;
+    }
+    
+    public boolean isOngoing() {
+    	if (checkOutDate != null && checkInDate != null) {
+    		return checkInDate.isBefore(LocalDate.now()) && checkOutDate.isAfter(LocalDate.now());
+    	}
+    	return false;
+    }
+    
+    public boolean isFinished() {
+    	if (checkOutDate != null) {
+    		return checkOutDate.isBefore(LocalDate.now());
+    	}
+    	return false;
     }
 }
 

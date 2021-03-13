@@ -1,6 +1,7 @@
 package com.safely.batch.connector.components;
 
 import com.safely.api.domain.Organization;
+import com.safely.api.domain.Property;
 import com.safely.api.domain.Reservation;
 import com.safely.batch.connector.JobContext;
 import org.slf4j.Logger;
@@ -33,9 +34,23 @@ public class ComputeReservationsChangeListService {
 
         Map<String, Object> stepStatistics = new HashMap<>();
 
+        List<Property> safelyProperties = jobContext.getCurrentSafelyProperties();
+        List<Property> newProperties = jobContext.getNewProperties();;
         List<Reservation> safelyReservations = jobContext.getCurrentSafelyReservations();
         List<Reservation> pmsReservations = jobContext.getPmsSafelyReservations();
 
+        //Add all the safely properties to a Map for easy lookup by Reference Id
+        Map<String, Property> safelyPropertyLookup = new HashMap<>();
+        for (Property safelyProperty : safelyProperties) {
+            safelyPropertyLookup.put(safelyProperty.getReferenceId(), safelyProperty);
+        }
+        
+        //Add all the new properties to a Map for easy lookup by Reference Id
+        Map<String, Property> newPropertyLookup = new HashMap<>();
+        for (Property newProperty : newProperties) {
+        	newPropertyLookup.put(newProperty.getReferenceId(), newProperty);
+        }
+        
         //Add all the safely reservation to a Map so we can look them up by Reference ID
         Map<String, Reservation> safelyReservationLookup = new HashMap<>();
         for (Reservation safelyReservation : safelyReservations) {
@@ -53,15 +68,19 @@ public class ComputeReservationsChangeListService {
 
                 //we could possibly use the modified date as well
                 if (safelyReservation == null) {
+                    String propertyPmsID = pmsReservation.getPropertyReferenceId();
+                    if (safelyPropertyLookup.get(propertyPmsID) == null && newPropertyLookup.get(propertyPmsID) == null) {
+                    	log.error("Reservation id={} new for Safely. Booked property id={} can't be loaded nor from Hostfully neither from Safely.", 
+                    			pmsReservation.getReferenceId(), propertyPmsID);
+                    }
                     newReservations.add(pmsReservation);
                 } else if (!safelyReservation.equals(pmsReservation)) {
                     updateReservation(safelyReservation, pmsReservation);
                     updatedReservations.add(safelyReservation);
                 }
+                
             } catch (Exception e) {
-                String message = String
-                        .format("Failed to compute updates for reservation with referenceId %s",
-                                pmsReservation.getReferenceId());
+                String message = String.format("Failed to compute updates for reservation with referenceId %s", pmsReservation.getReferenceId());
                 log.error(message, e);
                 erroredReservations.add(pmsReservation.getReferenceId());
             }
@@ -78,8 +97,7 @@ public class ComputeReservationsChangeListService {
         jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);
     }
 
-    protected Reservation updateReservation(Reservation safelyReservation,
-                                            Reservation pmsReservation) {
+    protected Reservation updateReservation(Reservation safelyReservation, Reservation pmsReservation) {
         safelyReservation.setOrganizationId(pmsReservation.getOrganizationId());
         safelyReservation.setReferenceId(pmsReservation.getReferenceId());
         safelyReservation.setLegacyOrganizationId(pmsReservation.getLegacyOrganizationId());

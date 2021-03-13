@@ -1,19 +1,22 @@
 package com.safely.batch.connector.components;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
 import com.safely.batch.connector.JobContext;
 import com.safely.batch.connector.client.PropertiesService;
 import com.safely.batch.connector.client.ReservationsService;
 import com.safely.batch.connector.pms.property.PmsProperty;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
 import com.safely.batch.connector.pms.reservation.PmsReservationProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 @Service
 public class LoadPmsReservationsService {
@@ -43,6 +46,8 @@ public class LoadPmsReservationsService {
         for (PmsProperty property : properties) {
             propertyMapById.put(property.getUid(), property);
         }
+        
+        Set<String> failedProperties = new TreeSet<String>();
 
         // check to ensure all properties for reservations exist, if one is not in list, load it singly
         for (PmsReservation reservation : serverReservations) {
@@ -53,14 +58,25 @@ public class LoadPmsReservationsService {
             if (propertyMapById.containsKey(reservationProperty.getUid())) {
                 continue;
             }
-
+            
             // missing property
             String uid = reservationProperty.getUid();
             try {
-                PmsProperty newProperty = propertiesService.getProperty(apiKey, uid, agencyUid);
+            	PmsProperty newProperty = null;
+            	if (!failedProperties.contains(uid)) {
+            		newProperty = propertiesService.getProperty(apiKey, uid, agencyUid);
+            	}
                 if (newProperty != null) {
                     propertyMapById.put(uid, newProperty);
                     properties.add(newProperty);
+                } else {
+                	failedProperties.add(uid);
+                	if (reservation.isActive()) {
+	                	if (reservation.isOngoing() || reservation.isPending()) {
+	                		log.error("Reservation id={} in active status booked at {} for period {} - {}, guest:{}. Property for this reservation id={} can't be loaded from Hostfully system. Please contact PM", 
+	                				reservation.getUid(), reservation.getCreated(), reservation.getCheckInDate(), reservation.getCheckOutDate(), reservation.getFirstName() + " " + reservation.getLastName(), uid);
+	                	}
+                	}
                 }
             } catch (Exception ex) {
                 log.error("Error while trying to load inactive property with id: {}", uid);
