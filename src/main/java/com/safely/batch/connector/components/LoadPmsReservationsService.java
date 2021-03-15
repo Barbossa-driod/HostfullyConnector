@@ -1,5 +1,6 @@
 package com.safely.batch.connector.components;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,7 @@ public class LoadPmsReservationsService {
         log.info("Loading reservations from PMS");
         String agencyUid = jobContext.getAgencyUid();
         List<PmsReservation> serverReservations = reservationsService.getReservations(apiKey, agencyUid);
-
+        
         // get properties and convert to map
         List<PmsProperty> properties = jobContext.getPmsProperties();
         Map<String, PmsProperty> propertyMapById = new HashMap<>();
@@ -50,8 +51,12 @@ public class LoadPmsReservationsService {
         Set<String> failedProperties = new TreeSet<String>();
 
         // check to ensure all properties for reservations exist, if one is not in list, load it singly
+        
         for (PmsReservation reservation : serverReservations) {
-            PmsReservationProperty reservationProperty = reservation.getProperty();
+        	if (reservation.getCheckOutDate() != null && reservation.getCheckOutDate().plusDays(7).isBefore(LocalDate.now())) {
+        		continue;
+        	}
+        	PmsReservationProperty reservationProperty = reservation.getProperty();
             if (reservationProperty == null) {
                 continue;
             }
@@ -71,12 +76,6 @@ public class LoadPmsReservationsService {
                     properties.add(newProperty);
                 } else {
                 	failedProperties.add(uid);
-                	if (reservation.isActive()) {
-	                	if (reservation.isOngoing() || reservation.isPending()) {
-	                		log.error("Reservation id={} in active status booked at {} for period {} - {}, guest:{}. Property for this reservation id={} can't be loaded from Hostfully system. Please contact PM", 
-	                				reservation.getUid(), reservation.getCreated(), reservation.getCheckInDate(), reservation.getCheckOutDate(), reservation.getFirstName() + " " + reservation.getLastName(), uid);
-	                	}
-                	}
                 }
             } catch (Exception ex) {
                 log.error("Error while trying to load inactive property with id: {}", uid);
@@ -84,7 +83,7 @@ public class LoadPmsReservationsService {
             }
         }
 
-        log.info("Finished Loading {} from PMS ", serverReservations.size());
+        log.info("Finished Loading {} reservation(s) from PMS ", serverReservations.size());
         scanReservationTypes(serverReservations);
 
         stepStatistics.put(LOADED, serverReservations.size());

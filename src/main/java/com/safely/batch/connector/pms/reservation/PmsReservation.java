@@ -169,47 +169,6 @@ public class PmsReservation {
         public static final String WISCONSIN = "WI";
         public static final String WYOMING = "WY";
     }
-    
-    public boolean isActive() {
-    	switch (status) {
-    	case PMSReservationStatus.NEW:
-    	case PMSReservationStatus.BOOKED:
-    	case PMSReservationStatus.PAID_IN_FULL:
-    	case PMSReservationStatus.PENDING:
-    		return true;
-    	case PMSReservationStatus.ON_HOLD:
-    	case PMSReservationStatus.BLOCKED:
-    	case PMSReservationStatus.DECLINED:
-    	case PMSReservationStatus.IGNORED:
-    	case PMSReservationStatus.CANCELLED_BY_TRAVELER:
-    	case PMSReservationStatus.CANCELLED_BY_OWNER:
-    	case PMSReservationStatus.HOLD_EXPIRED:
-    	case PMSReservationStatus.CANCELLED:
-    		return false;
-    	}
-    	return false;
-    }
-    
-    public boolean isPending() {
-    	if (checkInDate != null) {
-    		return checkInDate.isAfter(LocalDate.now());
-    	}
-    	return false;
-    }
-    
-    public boolean isOngoing() {
-    	if (checkOutDate != null && checkInDate != null) {
-    		return checkInDate.isBefore(LocalDate.now()) && checkOutDate.isAfter(LocalDate.now());
-    	}
-    	return false;
-    }
-    
-    public boolean isFinished() {
-    	if (checkOutDate != null) {
-    		return checkOutDate.isBefore(LocalDate.now());
-    	}
-    	return false;
-    }
 }
 
 

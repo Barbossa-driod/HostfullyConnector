@@ -1,16 +1,7 @@
 package com.safely.batch.connector.components;
 
-import com.safely.api.domain.*;
-import com.safely.api.domain.enumeration.*;
-import com.safely.batch.connector.JobContext;
-import com.safely.batch.connector.pms.reservation.PmsReservation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -18,6 +9,24 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import com.safely.api.domain.Guest;
+import com.safely.api.domain.GuestAddress;
+import com.safely.api.domain.GuestEmail;
+import com.safely.api.domain.GuestPhone;
+import com.safely.api.domain.Organization;
+import com.safely.api.domain.Reservation;
+import com.safely.api.domain.enumeration.AddressType;
+import com.safely.api.domain.enumeration.BookingChannelType;
+import com.safely.api.domain.enumeration.PhoneType;
+import com.safely.api.domain.enumeration.ReservationStatus;
+import com.safely.api.domain.enumeration.ReservationType;
+import com.safely.batch.connector.JobContext;
+import com.safely.batch.connector.pms.reservation.PmsReservation;
 
 @Service
 public class ConvertPmsReservationsToSafelyService {
@@ -235,31 +244,19 @@ public class ConvertPmsReservationsToSafelyService {
 
     private void setReservationDates(PmsReservation pmsReservation, Reservation safelyReservation) {
 
-        if (pmsReservation.getCheckInDate() != null) {
-            safelyReservation.setArrivalDate(LocalDate.parse(pmsReservation.getCheckInDate(),
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        }
-
-        if (pmsReservation.getCheckOutDate() != null) {
-            safelyReservation.setDepartureDate(LocalDate.parse(pmsReservation.getCheckOutDate(),
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        }
-
+    	safelyReservation.setArrivalDate(pmsReservation.getCheckInDate());
+        safelyReservation.setDepartureDate(pmsReservation.getCheckOutDate());
+        
         if (pmsReservation.getCreated() != null) {
-            safelyReservation.setPmsCreateDate(LocalDateTime.parse(pmsReservation.getCreated(),
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S")));
+        	LocalDateTime created = LocalDateTime.parse(pmsReservation.getCreated(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
+            safelyReservation.setPmsCreateDate(created);
+            safelyReservation.setBookingDate(created.toLocalDate());
         }
 
-        if (pmsReservation.getCreated() != null) {
-            safelyReservation.setBookingDate(LocalDate.parse(pmsReservation.getCreated(),
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S")));
-        }
-
-        if (pmsReservation.getModified() != null) {
-            safelyReservation.setPmsUpdateDate(LocalDateTime
-                    .parse(pmsReservation.getModified(),
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S")));
-        }
+		if (pmsReservation.getModified() != null) {
+			safelyReservation.setPmsUpdateDate(
+				LocalDateTime.parse(pmsReservation.getModified(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S")));
+		}
     }
 
     private void setGuestTypeCounts(PmsReservation pmsReservation, Reservation safelyReservation) {

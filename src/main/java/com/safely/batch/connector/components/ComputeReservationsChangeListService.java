@@ -3,12 +3,14 @@ package com.safely.batch.connector.components;
 import com.safely.api.domain.Organization;
 import com.safely.api.domain.Property;
 import com.safely.api.domain.Reservation;
+import com.safely.api.domain.enumeration.ReservationStatus;
 import com.safely.batch.connector.JobContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,14 +71,18 @@ public class ComputeReservationsChangeListService {
                 //we could possibly use the modified date as well
                 if (safelyReservation == null) {
                     String propertyPmsID = pmsReservation.getPropertyReferenceId();
-                    if (safelyPropertyLookup.get(propertyPmsID) == null && newPropertyLookup.get(propertyPmsID) == null) {
-                    	log.error("Reservation id={} new for Safely. Booked property id={} can't be loaded nor from Hostfully neither from Safely.", 
-                    			pmsReservation.getReferenceId(), propertyPmsID);
+                    if (pmsReservation.getStatus() == ReservationStatus.ACTIVE && safelyPropertyLookup.get(propertyPmsID) == null && newPropertyLookup.get(propertyPmsID) == null) {
+                    	String guestName = pmsReservation.getGuests().get(0).getFirstName() + " " + pmsReservation.getGuests().get(0).getLastName(); 
+                    	log.error("Property id={} (organization id = {}) has been reserved id={} booked on {}, for period {} - {} by guest {}. Booked  can't be loaded nor from Hostfully neither from Safely.", 
+                    			propertyPmsID, jobContext.getOrganization().getLegacyOrganizationId(), pmsReservation.getReferenceId(), pmsReservation.getCreateDate(), pmsReservation.getArrivalDate(),
+                    			pmsReservation.getDepartureDate(), guestName);
                     }
                     newReservations.add(pmsReservation);
                 } else if (!safelyReservation.equals(pmsReservation)) {
-                    updateReservation(safelyReservation, pmsReservation);
-                    updatedReservations.add(safelyReservation);
+                	if (safelyReservation.getDepartureDate().plusDays(7).isAfter(LocalDate.now())) {
+	                    updateReservation(safelyReservation, pmsReservation);
+	                    updatedReservations.add(safelyReservation);
+                	}
                 }
                 
             } catch (Exception e) {
