@@ -60,11 +60,13 @@ public class ReservationsService {
                     }
                 } while (response == null && attempts <= 3);
 
-                if (response == null)
-                    throw new Exception("Failed to load reservations after 3 tries.");
+                if (response == null) {
+                	log.error("ListReservations call failed (offset: {}, size: {})! No response", offset, LIMIT);
+                    throw new Exception("Failed to load reservations after 3 tries");
+                }
 
                 if (!response.isSuccessful()) {
-                    log.error("ListReservations call failed! Error Code: {}", response.code());
+                    log.error("ListReservations call failed (offset: {}, size: {})! Error Code: {}", offset, LIMIT, response.code());
                     throw new Exception(response.message());
                 }
 
@@ -80,7 +82,7 @@ public class ReservationsService {
                 offset = offset + retrievedCount;
 
             } catch (Exception ex) {
-                log.error("Exception while calling ListReservations!", ex);
+                log.error("Exception while calling ListReservations! {}", ex.getMessage());
                 throw ex;
             }
             pageCount++;
