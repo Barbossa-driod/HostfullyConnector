@@ -73,7 +73,7 @@ parameters:
   skip_prod_deploy:
     description: Skip deployment to production environment
     type: boolean
-    default: true
+    default: false
 
 jobs:
   #################################
