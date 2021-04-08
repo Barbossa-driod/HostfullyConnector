@@ -40,9 +40,9 @@ public class RetrofitConfiguration {
     public Retrofit getPmsApiRetrofit(ObjectMapper objectMapper) {
 
         OkHttpClient httpClient = new OkHttpClient.Builder()
-                .callTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
+                .callTimeout(120, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
                 .build();
 
         Retrofit retrofit = new Retrofit.Builder()
