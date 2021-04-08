@@ -52,8 +52,8 @@ public class ReservationsService {
                                 .listReservations(token, agencyUid, LIMIT, offset);
                         response = apiCall.execute();
                     } catch (Exception ex) {
-//            log.error("Error while attempting to load reservations.", ex);
-//            if (attempts >= 3) {
+                    	log.warn("Error while attempting to load reservations try #{}. Exception: {}", (attempts + 1), ex != null ? ex.getMessage() : ex);
+//                    	if (attempts >= 3) {
 //              throw ex;
 //            }
                         attempts++;
