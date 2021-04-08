@@ -15,7 +15,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PmsReservationProperty {
     @JsonProperty("postalCode")
-    private Integer postalCode;
+    private String postalCode;
 
     @JsonProperty("latitude")
     private BigDecimal latitude;

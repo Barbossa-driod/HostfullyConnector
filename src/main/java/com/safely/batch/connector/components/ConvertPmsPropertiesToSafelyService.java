@@ -89,7 +89,7 @@ public class ConvertPmsPropertiesToSafelyService {
         safelyProperty.setStreetLine2(pmsProperty.getAddress2());
         safelyProperty.setCity(pmsProperty.getCity());
         if (pmsProperty.getPostalCode() != null) {
-            safelyProperty.setPostalCode(pmsProperty.getPostalCode().toString());
+            safelyProperty.setPostalCode(pmsProperty.getPostalCode());
         }
         safelyProperty.setStateCode(pmsProperty.getState());
 
