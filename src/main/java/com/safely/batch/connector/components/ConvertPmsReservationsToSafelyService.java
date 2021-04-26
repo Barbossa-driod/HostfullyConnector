@@ -46,6 +46,8 @@ public class ConvertPmsReservationsToSafelyService {
 
         List<PmsReservation> pmsReservations = jobContext.getPmsReservations();
 
+        log.info("OrganizationId: {}. Convert PMS reservations to Safely structure.", jobContext.getOrganizationId());
+
         List<Reservation> pmsConvertedReservations = new ArrayList<>();
 
         List<String> failedReservationUids = new ArrayList<>();
@@ -55,14 +57,16 @@ public class ConvertPmsReservationsToSafelyService {
                 Reservation reservation = convertToSafelyReservation(organization, pmsReservation);
                 pmsConvertedReservations.add(reservation);
             } catch (Exception e) {
-                String message = String
-                        .format("Failed to convert reservation with Uid %s", pmsReservation.getUid());
+                String message = String.format("OrganizationId: %s. Failed to convert Reservation with referenceId %s",
+                        jobContext.getOrganizationId(), pmsReservation.getUid());
                 log.error(message, e);
                 failedReservationUids.add(pmsReservation.getUid());
             }
         }
 
         jobContext.setPmsSafelyReservations(pmsConvertedReservations);
+
+        log.info("OrganizationId: {}. Converted reservations count: {}", jobContext.getOrganizationId(), pmsConvertedReservations.size());
 
         stepStatistics.put(CONVERTED, pmsConvertedReservations.size());
         stepStatistics.put(PROCESSED, pmsReservations.size());

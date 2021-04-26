@@ -44,21 +44,23 @@ public class SaveReservationsToSafelyService {
         List<String> failedIds = new ArrayList<>();
 
         List<Reservation> newReservations = jobContext.getNewReservations();
-        log.info("Writing {} new reservations for organization: {} - ({})", newReservations.size(),
-                organization.getName(), organization.getEntityId());
+        log.info("OrganizationId: {}. Writing {} new reservations for organization with name: {}",
+                organization.getEntityId(), newReservations.size(),
+                organization.getName());
         for (Reservation reservation : newReservations) {
             try {
                 reservationsService.create(token.getIdToken(), reservation);
                 successfullyCreated++;
             } catch (Exception e) {
-                log.error("Failed to create reservation with referenceId {}", reservation.getReferenceId());
+                log.error("OrganizationId: {}. Failed to create reservation with referenceId {}. Error message: {}",
+                        organization.getEntityId(), reservation.getReferenceId(), e.getMessage());
                 failedIds.add(reservation.getReferenceId());
             }
         }
 
         List<Reservation> updatedReservations = jobContext.getUpdatedReservations();
-        log.info("Writing {} updated reservations for organization: {} - ({})",
-                updatedReservations.size(), organization.getName(), organization.getEntityId());
+        log.info("OrganizationId: {}. Writing {} updated reservations for organization with name: {}",
+                organization.getEntityId(), updatedReservations.size(), organization.getName());
 
         int successfullyUpdated = 0;
 
@@ -67,10 +69,15 @@ public class SaveReservationsToSafelyService {
                 reservationsService.save(token.getIdToken(), reservation);
                 successfullyUpdated++;
             } catch (Exception e) {
-                log.error("Failed to update reservation with referenceId {}", reservation.getReferenceId());
+                log.error("OrganizationId: {}. Failed to update reservation with referenceId {}. Error message: {}",
+                        organization.getEntityId(), reservation.getReferenceId(), e.getMessage());
                 failedIds.add(reservation.getReferenceId());
             }
         }
+
+        log.info("OrganizationId: {}. Found {} successfully created reservations.", jobContext.getOrganizationId(), successfullyCreated);
+        log.info("OrganizationId: {}. Found {} successfully updated reservations.", jobContext.getOrganizationId(), successfullyUpdated);
+        log.info("OrganizationId: {}. Found {} failed reservations.", jobContext.getOrganizationId(), failedIds.size());
 
         stepStatistics.put(CREATED, successfullyCreated);
         stepStatistics.put(UPDATED, successfullyUpdated);

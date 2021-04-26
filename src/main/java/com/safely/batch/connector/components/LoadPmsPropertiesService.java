@@ -28,12 +28,12 @@ public class LoadPmsPropertiesService {
     public void execute(JobContext jobContext, String apiKey) throws Exception {
         Map<String, Object> stepStatistics = new HashMap<>();
 
-        log.info("Loading properties from PMS");
+        log.info("OrganizationId: {}. Loading properties from PMS", jobContext.getOrganizationId());
         String agencyUid = jobContext.getAgencyUid();
 
         List<PmsProperty> properties = propertiesService.getProperties(apiKey, agencyUid);
 
-        log.info("Loaded {} properties from PMS.", properties.size());
+        log.info("OrganizationId: {}. Loaded {} properties from PMS.", jobContext.getOrganizationId(), properties.size());
 
         stepStatistics.put(LOADED, properties.size());
         jobContext.getJobStatistics().put(STEP_NAME, stepStatistics);

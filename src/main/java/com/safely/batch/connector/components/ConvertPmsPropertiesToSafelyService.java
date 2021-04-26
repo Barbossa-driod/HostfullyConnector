@@ -37,6 +37,8 @@ public class ConvertPmsPropertiesToSafelyService {
         Map<String, Object> stepStatistics = new HashMap<>();
         Organization organization = jobContext.getOrganization();
 
+        log.info("OrganizationId: {}. Convert PMS properties to Safely structure.", jobContext.getOrganizationId());
+
         List<PmsProperty> pmsProperties = jobContext.getPmsProperties();
 
         List<Property> pmsConvertedProperties = new ArrayList<>();
@@ -50,13 +52,14 @@ public class ConvertPmsPropertiesToSafelyService {
                 Property property = convertToSafelyProperty(organization, pmsProperty, images);
                 pmsConvertedProperties.add(property);
             } catch (Exception e) {
-                String message = String
-                        .format("Failed to convert property with Uid %s", pmsProperty.getUid());
+                String message = String.format("OrganizationId: %s. Failed to convert property with Id %s",
+                        jobContext.getOrganizationId(), pmsProperty.getUid());
                 log.error(message, e);
                 failedPropertyUids.add(pmsProperty.getUid());
             }
         }
         jobContext.setPmsSafelyProperties(pmsConvertedProperties);
+        log.info("OrganizationId: {}. Converted properties count: {}", jobContext.getOrganizationId(), pmsConvertedProperties.size());
 
         stepStatistics.put(CONVERTED, pmsConvertedProperties.size());
         stepStatistics.put(PROCESSED, pmsProperties.size());

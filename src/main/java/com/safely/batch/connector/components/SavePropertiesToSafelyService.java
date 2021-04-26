@@ -42,8 +42,8 @@ public class SavePropertiesToSafelyService {
 
         List<String> failedIds = new ArrayList<>();
 
-        log.info("Writing {} new properties for organization: {} - ({})", newProperties.size(),
-                organization.getName(), organization.getEntityId());
+        log.info("OrganizationId: {}. Writing {} new properties for organization with name: {}",
+                organization.getEntityId(), newProperties.size(), organization.getName());
 
         int successfullyCreated = 0;
 
@@ -52,25 +52,32 @@ public class SavePropertiesToSafelyService {
                 propertiesService.create(token.getIdToken(), property);
                 successfullyCreated++;
             } catch (Exception e) {
-                log.error("Failed to create property with ReferenceID {}", property.getReferenceId());
+                log.error("OrganizationId: {}. Failed to create property with ReferenceID {}. Error message: {}",
+                        organization.getEntityId(), property.getReferenceId(), e.getMessage());
                 failedIds.add(property.getReferenceId());
             }
         }
 
         List<Property> updatedProperties = jobContext.getUpdatedProperties();
         int updatedSuccessfully = 0;
-        log.info("Writing {} updated properties for organization: {} - ({})", updatedProperties.size(),
-                organization.getName(), organization.getEntityId());
+        log.info("OrganizationId: {}. Writing {} updated properties for organization with name: {}",
+                organization.getEntityId(), updatedProperties.size(), organization.getName());
         for (Property property : updatedProperties) {
             try {
                 propertiesService.save(token.getIdToken(), property);
                 updatedSuccessfully++;
             } catch (Exception e) {
-                log.error("Failed to update property with ReferenceID {}", property.getReferenceId());
+                log.error("OrganizationId: {}. Failed to update property with ReferenceID {}. Error message: {}",
+                        organization.getEntityId(), property.getReferenceId(), e.getMessage());
                 failedIds.add(property.getReferenceId());
             }
 
         }
+
+        log.info("OrganizationId: {}.  Found {} successfully created properties.", jobContext.getOrganizationId(), successfullyCreated);
+        log.info("OrganizationId: {}. Found {} successfully updated properties.", jobContext.getOrganizationId(), updatedSuccessfully);
+        log.info("OrganizationId: {}. Found {} failed properties.", jobContext.getOrganizationId(), failedIds.size());
+
         stepStatistics.put(CREATED, successfullyCreated);
         stepStatistics.put(UPDATED, updatedSuccessfully);
         stepStatistics.put(FAILED, failedIds.size());

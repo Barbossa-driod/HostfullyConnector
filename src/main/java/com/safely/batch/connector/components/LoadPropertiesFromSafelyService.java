@@ -34,9 +34,8 @@ public class LoadPropertiesFromSafelyService {
 
         List<Property> currentSafelyProperties = propertiesService
                 .getAll(token.getIdToken(), organization.getEntityId());
-        log.info("Loaded {} Safely properties for organization: {} - ({}, {})",
-                currentSafelyProperties.size(), organization.getName(), organization.getEntityId(),
-                organization.getLegacyOrganizationId());
+        log.info("OrganizationId: {}. Loaded {} Safely properties for organization with name: {}",
+                organization.getEntityId(), currentSafelyProperties.size(), organization.getName());
 
         jobContext.setCurrentSafelyProperties(currentSafelyProperties);
 

@@ -29,8 +29,8 @@ public class ComputePropertiesChangeListService {
 
         Organization organization = jobContext.getOrganization();
 
-        log.info("Processing properties to find changes for organization: {} - ({})",
-                organization.getName(), organization.getEntityId());
+        log.info("OrganizationId: {}. Processing properties to find changes for organization with name: {}",
+                organization.getEntityId(), organization.getName());
 
         Map<String, Object> stepStatistics = new HashMap<>();
 
@@ -66,12 +66,15 @@ public class ComputePropertiesChangeListService {
                     updatedProperties.add(safelyProperty);
                 }
             } catch (Exception e) {
-                String message = String.format("Failed to compute changes for property with referenceId %s",
-                        pmsProperty.getReferenceId());
+                String message = String.format("OrganizationId: %s. Failed to compute changes for property with referenceId %s",
+                        jobContext.getOrganizationId(), pmsProperty.getReferenceId());
                 log.error(message, e);
                 erroredProperties.add(pmsProperty.getReferenceId());
             }
         }
+
+        log.info("OrganizationId: {}. Found {} new properties.", jobContext.getOrganizationId(), newProperties.size());
+        log.info("OrganizationId: {}. Found {} updated properties.", jobContext.getOrganizationId(), updatedProperties.size());
 
         int successfullyDeleted = 0;
 
@@ -82,18 +85,21 @@ public class ComputePropertiesChangeListService {
 
                 // if we don't see the property in the data pull from PMS, then we will mark the property with PMS Status inactive
                 if (pmsProperty == null) {
+                    log.warn("OrganizationId: {}. Property that previously existed was not found! Property referenceId: {}, name: {}",
+                            jobContext.getOrganizationId(), safelyProperty.getReferenceId(), safelyProperty.getName());
                     safelyProperty.setPmsStatus(PropertyStatus.INACTIVE);
                     updatedProperties.add(safelyProperty);
                     successfullyDeleted++;
                 }
             } catch (Exception e) {
-                String message = String
-                        .format("Failed to compute if property with referenceId %s has been deleted",
-                                safelyProperty.getReferenceId());
+                String message = String.format("OrganizationId: %s. Failed to compute if property with referenceId %s has been deleted",
+                        jobContext.getOrganizationId(), safelyProperty.getReferenceId());
                 log.error(message, e);
                 erroredProperties.add(safelyProperty.getReferenceId());
             }
         }
+
+        log.info("OrganizationId: {}. Found {} deleted properties.", jobContext.getOrganizationId(), successfullyDeleted);
 
         jobContext.setNewProperties(newProperties);
         jobContext.setUpdatedProperties(updatedProperties);

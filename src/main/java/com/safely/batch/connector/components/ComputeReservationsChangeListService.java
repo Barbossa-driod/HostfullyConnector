@@ -31,8 +31,8 @@ public class ComputeReservationsChangeListService {
     public void execute(JobContext jobContext) {
         Organization organization = jobContext.getOrganization();
 
-        log.info("Processing reservations to find changes for organization: {} - ({})",
-                organization.getName(), organization.getId());
+        log.info("OrganizationId: {}. Processing reservations to find changes for organization with name: {}",
+                organization.getEntityId(), organization.getName());
 
         Map<String, Object> stepStatistics = new HashMap<>();
 
@@ -73,8 +73,8 @@ public class ComputeReservationsChangeListService {
                     String propertyPmsID = pmsReservation.getPropertyReferenceId();
                     if (pmsReservation.getStatus() == ReservationStatus.ACTIVE && safelyPropertyLookup.get(propertyPmsID) == null && newPropertyLookup.get(propertyPmsID) == null) {
                     	String guestName = pmsReservation.getGuests().get(0).getFirstName() + " " + pmsReservation.getGuests().get(0).getLastName(); 
-                    	log.error("Property id={} (organization id = {}) has been reserved id={} booked on {}, for period {} - {} by guest {}. Booked  can't be loaded nor from Hostfully neither from Safely.", 
-                    			propertyPmsID, jobContext.getOrganization().getLegacyOrganizationId(), pmsReservation.getReferenceId(), pmsReservation.getCreateDate(), pmsReservation.getArrivalDate(),
+                    	log.error("OrganizationId: {}. Property id={} (organization id = {}) has been reserved id={} booked on {}, for period {} - {} by guest {}. Booked  can't be loaded nor from Hostfully neither from Safely.",
+                    			jobContext.getOrganizationId(), propertyPmsID, jobContext.getOrganization().getLegacyOrganizationId(), pmsReservation.getReferenceId(), pmsReservation.getCreateDate(), pmsReservation.getArrivalDate(),
                     			pmsReservation.getDepartureDate(), guestName);
                     }
                     newReservations.add(pmsReservation);
@@ -86,11 +86,15 @@ public class ComputeReservationsChangeListService {
                 }
                 
             } catch (Exception e) {
-                String message = String.format("Failed to compute updates for reservation with referenceId %s", pmsReservation.getReferenceId());
+                String message = String.format("OrganizationId: %s. Failed to compute updates for reservation with referenceId %s",
+                        jobContext.getOrganizationId(), pmsReservation.getReferenceId());
                 log.error(message, e);
                 erroredReservations.add(pmsReservation.getReferenceId());
             }
         }
+
+        log.info("OrganizationId: {}. Found {} new reservations.", jobContext.getOrganizationId(), newReservations.size());
+        log.info("OrganizationId: {}. Found {} updated reservations.", jobContext.getOrganizationId(), updatedReservations.size());
 
         jobContext.setNewReservations(newReservations);
         jobContext.setUpdatedReservations(updatedReservations);

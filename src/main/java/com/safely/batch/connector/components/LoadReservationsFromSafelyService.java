@@ -36,9 +36,8 @@ public class LoadReservationsFromSafelyService {
         List<Reservation> currentSafelyReservations = reservationsService
                 .getAll(token.getIdToken(), organization.getEntityId());
 
-        log.info("Loaded {} Safely reservations for organization: {} - ({}, {})",
-                currentSafelyReservations.size(), organization.getName(), organization.getEntityId(),
-                organization.getLegacyOrganizationId());
+        log.info("OrganizationId: {}. Loaded {} Safely reservations for organization with name: {}",
+                organization.getEntityId(), currentSafelyReservations.size(), organization.getName());
         jobContext.setCurrentSafelyReservations(currentSafelyReservations);
 
         stepStatistics.put(LOADED, currentSafelyReservations.size());

@@ -31,6 +31,7 @@ public class JobContext {
 
     // the organization this job is being performed for
     private Organization organization;
+    private String organizationId;
 
     // properties loaded from PMS
     private List<PmsProperty> pmsProperties;

@@ -24,11 +24,12 @@ public class LoadSafelyAuthService {
         Optional<JWTToken> maybeToken = safelyAuthenticationService.authenticate(username, password);
 
         if (maybeToken.isPresent()) {
-            log.info("Authentication token for Safely API found.");
+            log.info("OrganizationId: {}. Authentication token for Safely API found.", jobContext.getOrganizationId());
             jobContext.setSafelyToken(maybeToken.get());
         } else {
-            log.error("No authentication token retrieved from Safely API.");
-            throw new Exception("Authentication unsuccessful.");
+            String msg = String.format("OrganizationId: %s. No authentication token retrieved from Safely API.", jobContext.getOrganizationId());
+            log.error(msg);
+            throw new Exception(msg);
         }
     }
 }

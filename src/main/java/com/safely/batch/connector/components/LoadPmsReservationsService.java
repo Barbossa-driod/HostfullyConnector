@@ -37,7 +37,7 @@ public class LoadPmsReservationsService {
     public void execute(JobContext jobContext, String apiKey) throws Exception {
         Map<String, Object> stepStatistics = new HashMap<>();
 
-        log.info("Loading reservations from PMS");
+        log.info("OrganizationId: {}. Loading reservations from PMS", jobContext.getOrganizationId());
         String agencyUid = jobContext.getAgencyUid();
         List<PmsReservation> serverReservations = reservationsService.getReservations(apiKey, agencyUid);
         
@@ -78,12 +78,12 @@ public class LoadPmsReservationsService {
                 	failedProperties.add(uid);
                 }
             } catch (Exception ex) {
-                log.error("Error while trying to load inactive property with id: {}", uid);
+                log.error("OrganizationId: {}. Error while trying to load inactive property with id: {}", jobContext.getOrganizationId(), uid);
                 log.error(ex.getMessage(), ex);
             }
         }
 
-        log.info("Finished Loading {} reservation(s) from PMS ", serverReservations.size());
+        log.info("OrganizationId: {}. Loaded {} reservations from PMS.", jobContext.getOrganizationId(), serverReservations.size());
         scanReservationTypes(serverReservations);
 
         stepStatistics.put(LOADED, serverReservations.size());

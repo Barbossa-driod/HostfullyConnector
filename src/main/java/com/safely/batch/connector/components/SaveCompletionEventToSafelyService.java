@@ -55,7 +55,7 @@ public class SaveCompletionEventToSafelyService {
                 event.setDescription("Job failed.");
                 break;
             default:
-                log.error("Unrecognized event severity: {}", eventSeverity);
+                log.error("OrganizationId: {}. Unrecognized event severity: {}", jobContext.getOrganizationId(), eventSeverity);
         }
 
         event.setJobStatistics(jobContext.getJobStatistics());
@@ -63,10 +63,10 @@ public class SaveCompletionEventToSafelyService {
         try {
             eventsService.create(jobContext.getSafelyToken().getIdToken(), event);
         } catch (Exception ex) {
-            log.error("Event: [{}]", event);
-            log.error("Error while writing Event to API.", ex);
+            log.error("OrganizationId: {}. Event: [{}]", jobContext.getOrganizationId(), event);
+            log.error("OrganizationId: {}. Error while writing Event to API.", jobContext.getOrganizationId(), ex);
         }
 
-        log.info("Job completed: [{}]", event);
+        log.info("OrganizationId: {}. Job completed: [{}]", jobContext.getOrganizationId(), event);
     }
 }

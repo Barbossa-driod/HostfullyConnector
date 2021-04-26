@@ -28,10 +28,12 @@ public class LoadOrganizationService {
                 .getById(token.getIdToken(), organizationId);
 
         if (maybeOrganization.isPresent()) {
-            log.info("Organization found: {}", maybeOrganization.get());
+            log.info("OrganizationId: {}. Organization was successfully found: {}", organizationId, maybeOrganization.get());
             jobContext.setOrganization(maybeOrganization.get());
         } else {
-            throw new Exception("Could not load Organization with id: " + organizationId);
+            String msg = String.format("OrganizationId: %s. Could not load Organization.", organizationId);
+            log.error(msg);
+            throw new Exception(msg);
         }
     }
 }

@@ -88,6 +88,7 @@ public class SqsListeningService {
 
         LocalDateTime startTime = LocalDateTime.now();
         JobContext jobContext = new JobContext();
+        String organizationId = null;
         jobContext.setStartTime(startTime);
 
         EventSeverity eventSeverity = EventSeverity.INFO;
@@ -95,42 +96,54 @@ public class SqsListeningService {
         try {
             // get organizationId from message
             ConnectorMessage message = objectMapper.readValue(messageJson, ConnectorMessage.class);
-            String organizationId = message.getOrganizationId();
+            organizationId = message.getOrganizationId();
+            jobContext.setOrganizationId(organizationId);
 
-            log.info("Processing message for Organization Id: {} at UTC: {}. Message created on: {}",
+            log.info("OrganizationId: {}. Processing message at UTC: {}. Message created on: {}",
                     organizationId, jobContext.getStartTime(), message.getCreateDate());
 
             // setup for this run
+            log.info("OrganizationId: {}. Authentication in safelyAPI and loading organization data.", organizationId);
             loadSafelyAuthService.execute(jobContext, apiUsername, apiPassword);
             loadOrganizationService.execute(jobContext, organizationId);
 
             // load data from the PMS API
+            log.info("OrganizationId: {}. Preparing to load property data from PMS.", organizationId);
             refreshVisibility(visibility, startTime, 180);
             loadPmsPropertiesService.execute(jobContext, apiKey);
+            log.info("OrganizationId: {}. Preparing to load reservation data from PMS.", organizationId);
             refreshVisibility(visibility, startTime, 180);
             loadPmsReservationsService.execute(jobContext, apiKey);
 
             // convert PMS data to Safely format
+            log.info("OrganizationId: {}. Preparing to convert PMS properties to Safely structure", organizationId);
             convertPmsPropertiesToSafelyService.execute(jobContext);
+            log.info("OrganizationId: {}. Preparing to convert PMS reservations to Safely structure", organizationId);
             convertPmsReservationsToSafelyService.execute(jobContext);
 
             // load previous data
+            log.info("OrganizationId: {}. Preparing to load property data from Safely.", organizationId);
             refreshVisibility(visibility, startTime, jobContext.getPmsProperties().size());
             loadPropertiesFromSafelyService.execute(jobContext);
+            log.info("OrganizationId: {}. Preparing to load reservation data from Safely.", organizationId);
             refreshVisibility(visibility, startTime, jobContext.getPmsReservations().size());
             loadReservationsFromSafelyService.execute(jobContext);
 
             // compare previous data to new data for changes
+            log.info("OrganizationId: {}. Preparing to compute properties change list", organizationId);
             computePropertiesChangeListService.execute(jobContext);
+            log.info("OrganizationId: {}. Preparing to compute reservations change list", organizationId);
             computeReservationsChangeListService.execute(jobContext);
 
             // save any changes
+            log.info("OrganizationId: {}. Preparing to save properties to Safely", organizationId);
             int propertyCount =
                     jobContext.getNewProperties().size() + jobContext.getUpdatedProperties().size();
             refreshVisibility(visibility, startTime,
                     propertyCount); // assume one second per property to save
             savePropertiesToSafelyService.execute(jobContext);
 
+            log.info("OrganizationId: {}. Preparing to save reservations to Safely", organizationId);
             int reservationCount =
                     jobContext.getNewReservations().size() + jobContext.getUpdatedReservations().size();
             refreshVisibility(visibility, startTime, reservationCount);
@@ -152,10 +165,11 @@ public class SqsListeningService {
             sendMessageToQueue(organizationId);
 
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.error("OrganizationId: {}, Error message: {}, Error: {}", organizationId, ex.getMessage(), ex);
             eventSeverity = EventSeverity.ERROR;
         } finally {
             // exceptions in save event are handled
+            log.info("OrganizationId: {}. Preparing to save completion event to Safely", organizationId);
             jobContext.setEndTime(LocalDateTime.now());
             saveCompletionEventToSafelyService.execute(jobContext, eventSeverity);
         }
@@ -164,26 +178,24 @@ public class SqsListeningService {
             switch (eventSeverity) {
                 case INFO:
                 case WARNING:
-                    log.info("Job completed with status {}. Removing message from queue.", eventSeverity);
+                    log.info("OrganizationId: {}. Job completed with status {}. Removing message from queue.", organizationId, eventSeverity);
                     acknowledgment.acknowledge().get();
                     break;
                 case ERROR:
-                    log.info(
-                            "Job completed with status {}. Allowing the message to time out back into the queue.",
-                            eventSeverity);
+                    log.info("OrganizationId: {}. Job completed with status {}. Allowing the message to time out back into the queue.",
+                            organizationId, eventSeverity);
                     break;
                 default:
-                    log.error("Unrecognized event severity: {}", eventSeverity);
+                    log.error("OrganizationId: {}. Unrecognized event severity: {}", organizationId, eventSeverity);
             }
         } catch (Exception ex) {
-            log.error("Error while trying to clean up a message.");
-            log.error(ex.getMessage(), ex);
+            log.error("OrganizationId: {}. Error while trying to clean up a message. Error message: {}", organizationId, ex.getMessage());
         }
     }
 
     private void sendMessageToQueue(String organizationId) {
 
-        log.info("Sending message for organizationId: {} to queue: '{}'", organizationId,
+        log.info("OrganizationId: {}. Sending message to queue: '{}'", organizationId,
                 outboundQueueName);
 
         LocalDateTime createDate = LocalDateTime.now();
@@ -200,7 +212,7 @@ public class SqsListeningService {
 
             this.amazonSqsAsync.sendMessage(sendMessageRequest);
         } catch (Exception ex) {
-            log.error("Error while sending a message to queue.", ex);
+            log.error("OrganizationId: {}. Error while sending a message to queue. Error message: {}", organizationId, ex);
         }
     }
 
