@@ -79,9 +79,16 @@ public class RetrofitConfiguration {
     @Qualifier("SafelyApiBuilder")
     public Retrofit getSafelyApiRetrofit(ObjectMapper objectMapper) {
 
+        OkHttpClient httpClient = new OkHttpClient.Builder()
+                .callTimeout(120, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .build();
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+                .client(httpClient)
                 .build();
 
         return retrofit;

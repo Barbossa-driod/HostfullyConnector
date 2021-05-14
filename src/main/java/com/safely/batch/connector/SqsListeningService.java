@@ -38,8 +38,7 @@ public class SqsListeningService {
     private final SaveCompletionEventToSafelyService saveCompletionEventToSafelyService;
     private final ObjectMapper objectMapper;
     private final AmazonSQSAsync amazonSqsAsync;
-
-    final int maxSeconds = 60 * 60 * 12; // 12 hours is max allowed by sqs
+    private final ScheduledTasks scheduledTasks;
 
     @Value("${safely.api.username}")
     private String apiUsername;
@@ -65,7 +64,7 @@ public class SqsListeningService {
                                SavePropertiesToSafelyService savePropertiesToSafelyService,
                                SaveReservationsToSafelyService saveReservationsToSafelyService,
                                SaveCompletionEventToSafelyService saveCompletionEventToSafelyService,
-                               ObjectMapper objectMapper, AmazonSQSAsync amazonSqsAsync) {
+                               ObjectMapper objectMapper, AmazonSQSAsync amazonSqsAsync, ScheduledTasks scheduledTasks) {
         this.loadSafelyAuthService = loadSafelyAuthService;
         this.loadOrganizationService = loadOrganizationService;
         this.loadPmsPropertiesService = loadPmsPropertiesService;
@@ -81,6 +80,7 @@ public class SqsListeningService {
         this.saveCompletionEventToSafelyService = saveCompletionEventToSafelyService;
         this.objectMapper = objectMapper;
         this.amazonSqsAsync = amazonSqsAsync;
+        this.scheduledTasks = scheduledTasks;
     }
 
     @SqsListener(value = "${safely.queue.inbound.name}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
@@ -90,6 +90,8 @@ public class SqsListeningService {
         JobContext jobContext = new JobContext();
         String organizationId = null;
         jobContext.setStartTime(startTime);
+        jobContext.setInboundQueueVisibility(inboundQueueVisibility);
+        jobContext.setVisibility(visibility);
 
         EventSeverity eventSeverity = EventSeverity.INFO;
 
@@ -98,6 +100,8 @@ public class SqsListeningService {
             ConnectorMessage message = objectMapper.readValue(messageJson, ConnectorMessage.class);
             organizationId = message.getOrganizationId();
             jobContext.setOrganizationId(organizationId);
+
+            scheduledTasks.initDataToIncreaseMessageVisibility(organizationId, jobContext);
 
             log.info("OrganizationId: {}. Processing message at UTC: {}. Message created on: {}",
                     organizationId, jobContext.getStartTime(), message.getCreateDate());
@@ -109,10 +113,8 @@ public class SqsListeningService {
 
             // load data from the PMS API
             log.info("OrganizationId: {}. Preparing to load property data from PMS.", organizationId);
-            refreshVisibility(visibility, startTime, 180);
             loadPmsPropertiesService.execute(jobContext, apiKey);
             log.info("OrganizationId: {}. Preparing to load reservation data from PMS.", organizationId);
-            refreshVisibility(visibility, startTime, 180);
             loadPmsReservationsService.execute(jobContext, apiKey);
 
             // convert PMS data to Safely format
@@ -123,10 +125,8 @@ public class SqsListeningService {
 
             // load previous data
             log.info("OrganizationId: {}. Preparing to load property data from Safely.", organizationId);
-            refreshVisibility(visibility, startTime, jobContext.getPmsProperties().size());
             loadPropertiesFromSafelyService.execute(jobContext);
             log.info("OrganizationId: {}. Preparing to load reservation data from Safely.", organizationId);
-            refreshVisibility(visibility, startTime, jobContext.getPmsReservations().size());
             loadReservationsFromSafelyService.execute(jobContext);
 
             // compare previous data to new data for changes
@@ -137,16 +137,9 @@ public class SqsListeningService {
 
             // save any changes
             log.info("OrganizationId: {}. Preparing to save properties to Safely", organizationId);
-            int propertyCount =
-                    jobContext.getNewProperties().size() + jobContext.getUpdatedProperties().size();
-            refreshVisibility(visibility, startTime,
-                    propertyCount); // assume one second per property to save
             savePropertiesToSafelyService.execute(jobContext);
 
             log.info("OrganizationId: {}. Preparing to save reservations to Safely", organizationId);
-            int reservationCount =
-                    jobContext.getNewReservations().size() + jobContext.getUpdatedReservations().size();
-            refreshVisibility(visibility, startTime, reservationCount);
             saveReservationsToSafelyService.execute(jobContext);
 
             // if any step reported any failures, mark severity as warning
@@ -172,6 +165,7 @@ public class SqsListeningService {
             log.info("OrganizationId: {}. Preparing to save completion event to Safely", organizationId);
             jobContext.setEndTime(LocalDateTime.now());
             saveCompletionEventToSafelyService.execute(jobContext, eventSeverity);
+            scheduledTasks.setIsIncreaseVisibilityEnable(Boolean.FALSE);
         }
 
         try {
@@ -213,18 +207,6 @@ public class SqsListeningService {
             this.amazonSqsAsync.sendMessage(sendMessageRequest);
         } catch (Exception ex) {
             log.error("OrganizationId: {}. Error while sending a message to queue. Error message: {}", organizationId, ex);
-        }
-    }
-
-    private void refreshVisibility(Visibility visibility, LocalDateTime startTIme, int additionalSeconds) throws ExecutionException, InterruptedException {
-        int lengthOfJobInSeconds = (int) ChronoUnit.SECONDS.between(startTIme, LocalDateTime.now());
-        int secondsLeftInVisibility = inboundQueueVisibility - lengthOfJobInSeconds;
-        int maxAllowedSecondsToAdd = maxSeconds - secondsLeftInVisibility;
-        int finalSecondsToAdd = Math.max(Math.min(maxAllowedSecondsToAdd, additionalSeconds), 0);
-        log.info("Message visibility timeout refresh. Current Length of Job: {} Seconds Left in Visibility: {}, Seconds to Add: {} Final Seconds to Add: {}", lengthOfJobInSeconds, secondsLeftInVisibility, additionalSeconds, finalSecondsToAdd);
-        if (finalSecondsToAdd > secondsLeftInVisibility) {
-            visibility.extend(finalSecondsToAdd).get();
-            inboundQueueVisibility += finalSecondsToAdd;
         }
     }
 }

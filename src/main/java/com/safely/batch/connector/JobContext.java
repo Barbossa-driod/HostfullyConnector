@@ -8,9 +8,13 @@ import com.safely.batch.connector.common.domain.safely.auth.JWTToken;
 import com.safely.batch.connector.pms.property.PmsProperty;
 import com.safely.batch.connector.pms.reservation.PmsReservation;
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cloud.aws.messaging.listener.Visibility;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +22,9 @@ import java.util.Map;
 @Component
 @Data
 public class JobContext {
+    private static final Logger log = LoggerFactory.getLogger(JobContext.class);
+
+    final int maxSeconds = 60 * 60 * 12; // 12 hours is max allowed by sqs
 
     private final static String BASE_URL = "BASE_URL";
 
@@ -25,6 +32,8 @@ public class JobContext {
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private int inboundQueueVisibility;
+    private Visibility visibility;
 
     // authentication toke for Safely API
     private JWTToken safelyToken;
@@ -63,5 +72,26 @@ public class JobContext {
 
     public String getAgencyUid() {
         return getOrganization().getOrganizationSourceCredentials().getCustomCredentialsData().get(AGENCY_UID);
+    }
+
+    public void refreshVisibility(int additionalSeconds) throws Exception {
+        log.info("OrganizationId: {}. Preparing to refresh message visibility.", organizationId);
+        LocalDateTime now = LocalDateTime.now();
+        int lengthOfJobInSeconds = (int) ChronoUnit.SECONDS.between(this.getStartTime(), now);
+        int secondsLeftInVisibility = inboundQueueVisibility - lengthOfJobInSeconds;
+
+        if (secondsLeftInVisibility <= 0) {
+            String msg = String.format("OrganizationId: %s. Job has taken longer than message visibility. StartTime: '%s' Now: '%s' Length of Job: %s Seconds In Visibility: %s", organizationId, this.getStartTime(), now, lengthOfJobInSeconds, inboundQueueVisibility);
+            log.error(msg);
+            throw new Exception(msg);
+        }
+
+        int maxAllowedSecondsToAdd = maxSeconds - secondsLeftInVisibility;
+        int finalSecondsToAdd = Math.max(Math.min(maxAllowedSecondsToAdd, additionalSeconds), 0);
+        log.info("OrganizationId: {}. Message visibility timeout refresh. Current Length of Job: {} Seconds Left in Visibility: {}, Seconds to Add: {} Final Seconds to Add: {}", organizationId, lengthOfJobInSeconds, secondsLeftInVisibility, additionalSeconds, finalSecondsToAdd);
+        if (finalSecondsToAdd > secondsLeftInVisibility) {
+            visibility.extend(finalSecondsToAdd).get();
+            inboundQueueVisibility += finalSecondsToAdd;
+        }
     }
 }
