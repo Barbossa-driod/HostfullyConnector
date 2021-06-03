@@ -3,4 +3,4 @@ spring:
 
 safely:
   baseUrl: https://dev.api.safely.ai/
-  hostfullyBaseUrl: https://sandbox.hostfully.com/
+  hostfullyBaseUrl: https://api.hostfully.com/
