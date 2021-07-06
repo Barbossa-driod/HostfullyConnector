@@ -21,6 +21,7 @@ public class PropertiesService {
     private static final int LIMIT = 20;
 
     private final RateLimiter rateLimiter;
+
     private PropertiesV1ApiClient propertiesV1ApiClient;
 
     public PropertiesService(PropertiesV1ApiClient propertiesV1ApiClient,
