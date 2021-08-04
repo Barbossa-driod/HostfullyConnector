@@ -2,17 +2,22 @@ package com.safely.batch.connector;
 
 
 import com.safely.api.domain.Organization;
+import com.safely.api.domain.OrganizationConfiguration;
 import com.safely.api.domain.Property;
 import com.safely.api.domain.Reservation;
 import com.safely.batch.connector.common.domain.safely.auth.JWTToken;
-import com.safely.batch.connector.pms.property.PmsProperty;
-import com.safely.batch.connector.pms.reservation.PmsReservation;
+import com.safely.batch.connector.pmsV1.property.PmsProperty;
+import com.safely.batch.connector.pmsV1.reservation.PmsReservation;
+import com.safely.batch.connector.pmsV2.property.PmsPropertyV2;
+import com.safely.batch.connector.pmsV2.reservation.PmsReservationV2;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.aws.messaging.listener.Visibility;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -47,6 +52,14 @@ public class JobContext {
     // reservations loaded from PMS
     private List<PmsReservation> pmsReservations;
 
+    // properties loaded from PMS V2
+    private List<PmsPropertyV2> pmsPropertiesV2;
+    // reservations loaded from PMS V2
+    private List<PmsReservationV2> pmsReservationsV2;
+
+    // if false it's API v1 else API v2
+    private boolean apiVersion;
+
     // PMS properties that have been converted to the safely domain model
     private List<Property> pmsSafelyProperties;
     // PMS reservations that have been converted to the safely domain model
@@ -72,6 +85,44 @@ public class JobContext {
 
     public String getAgencyUid() {
         return getOrganization().getOrganizationSourceCredentials().getCustomCredentialsData().get(AGENCY_UID);
+    }
+
+    public boolean getApiVersion() throws Exception {
+        Map<String, String> customCredentialsData = getCustomCredentialsData();
+        if (customCredentialsData == null || (customCredentialsData != null && customCredentialsData.get("API_VERSION").equals("1"))){
+            apiVersion = false;
+        } else if(customCredentialsData != null && customCredentialsData.get("API_VERSION").equals("2")){
+            apiVersion = true;
+        }
+        return apiVersion;
+    }
+
+    public Map<String, String> getCustomCredentialsData() throws Exception {
+        Map<String, String> customCredentialsData = getCurrentConfiguration().getPmsCredentials().getCustomCredentialsData();
+        return customCredentialsData;
+    }
+
+    public OrganizationConfiguration getCurrentConfiguration() throws Exception {
+        OrganizationConfiguration configuration = null;
+        LocalDate now = LocalDate.now();
+        List<OrganizationConfiguration> configurations;
+
+        log.info("Started searching configuration for organization: {}", organization.getEntityId());
+        configurations = organization.getConfigurations();
+        if (!CollectionUtils.isEmpty(configurations)) {
+            configuration = organization.getConfigurations().stream()
+                    .findFirst()
+                    .filter(conf -> (conf.getEffectiveStartDate().isBefore(now) || conf.getEffectiveStartDate().isEqual(now)) &&
+                            (conf.getEffectiveEndDate() == null || conf.getEffectiveEndDate().isAfter(now))).orElse(null);
+        }
+        if (configuration == null) {
+            String msg = String.format("Couldn't find the configuration in the organization object with id: %s", organization.getEntityId());
+            log.error(msg);
+            throw new Exception(msg);
+        }
+        log.info("Configuration for the organization: {} was successfully found", organization.getEntityId());
+
+        return configuration;
     }
 
     public void refreshVisibility(int additionalSeconds) throws Exception {

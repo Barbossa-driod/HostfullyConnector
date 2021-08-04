@@ -4,7 +4,17 @@ import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safely.api.domain.enumeration.EventSeverity;
-import com.safely.batch.connector.components.*;
+import com.safely.batch.connector.components.commonV1.ComputePropertiesChangeListService;
+import com.safely.batch.connector.components.commonV1.ComputeReservationsChangeListService;
+import com.safely.batch.connector.components.commonV1.ConvertPmsPropertiesToSafelyService;
+import com.safely.batch.connector.components.commonV1.ConvertPmsReservationsToSafelyService;
+import com.safely.batch.connector.components.externalV2.LoadPmsPropertiesPhotoServiceV2;
+import com.safely.batch.connector.components.externalV2.LoadPmsPropertiesServiceV2;
+import com.safely.batch.connector.components.externalV2.LoadPmsReservationsServiceV2;
+import com.safely.batch.connector.components.externalV2.LoadReservationsOrdersServiceV2;
+import com.safely.batch.connector.components.internal.*;
+import com.safely.batch.connector.components.externalV1.LoadPmsPropertiesService;
+import com.safely.batch.connector.components.externalV1.LoadPmsReservationsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,9 +25,7 @@ import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 @Service
 public class SqsListeningService {
@@ -31,6 +39,10 @@ public class SqsListeningService {
     private final ConvertPmsReservationsToSafelyService convertPmsReservationsToSafelyService;
     private final LoadPropertiesFromSafelyService loadPropertiesFromSafelyService;
     private final LoadReservationsFromSafelyService loadReservationsFromSafelyService;
+    private final LoadPmsPropertiesServiceV2 loadPmsPropertiesServiceV2;
+    private final LoadPmsPropertiesPhotoServiceV2 loadPmsPropertiesPhotoServiceV2;
+    private final LoadPmsReservationsServiceV2 loadPmsReservationsServiceV2;
+    private final LoadReservationsOrdersServiceV2 loadReservationsOrdersServiceV2;
     private final ComputePropertiesChangeListService computePropertiesChangeListService;
     private final ComputeReservationsChangeListService computeReservationsChangeListService;
     private final SavePropertiesToSafelyService savePropertiesToSafelyService;
@@ -59,6 +71,8 @@ public class SqsListeningService {
                                ConvertPmsReservationsToSafelyService convertPmsReservationsToSafelyService,
                                LoadPropertiesFromSafelyService loadPropertiesFromSafelyService,
                                LoadReservationsFromSafelyService loadReservationsFromSafelyService,
+                               LoadPmsPropertiesServiceV2 loadPmsPropertiesServiceV2, LoadPmsPropertiesPhotoServiceV2 loadPmsPropertiesPhotoServiceV2,
+                               LoadPmsReservationsServiceV2 loadPmsReservationsServiceV2, LoadReservationsOrdersServiceV2 loadReservationsOrdersServiceV2,
                                ComputePropertiesChangeListService computePropertiesChangeListService,
                                ComputeReservationsChangeListService computeReservationsChangeListService,
                                SavePropertiesToSafelyService savePropertiesToSafelyService,
@@ -73,6 +87,10 @@ public class SqsListeningService {
         this.convertPmsReservationsToSafelyService = convertPmsReservationsToSafelyService;
         this.loadPropertiesFromSafelyService = loadPropertiesFromSafelyService;
         this.loadReservationsFromSafelyService = loadReservationsFromSafelyService;
+        this.loadPmsPropertiesServiceV2 = loadPmsPropertiesServiceV2;
+        this.loadPmsPropertiesPhotoServiceV2 = loadPmsPropertiesPhotoServiceV2;
+        this.loadPmsReservationsServiceV2 = loadPmsReservationsServiceV2;
+        this.loadReservationsOrdersServiceV2 = loadReservationsOrdersServiceV2;
         this.computePropertiesChangeListService = computePropertiesChangeListService;
         this.computeReservationsChangeListService = computeReservationsChangeListService;
         this.savePropertiesToSafelyService = savePropertiesToSafelyService;
@@ -111,11 +129,19 @@ public class SqsListeningService {
             loadSafelyAuthService.execute(jobContext, apiUsername, apiPassword);
             loadOrganizationService.execute(jobContext, organizationId);
 
-            // load data from the PMS API
-            log.info("OrganizationId: {}. Preparing to load property data from PMS.", organizationId);
+            // load data from the PMS API V1
+            log.info("OrganizationId: {}. Preparing to load property data from PMS V1.", organizationId);
             loadPmsPropertiesService.execute(jobContext, apiKey);
-            log.info("OrganizationId: {}. Preparing to load reservation data from PMS.", organizationId);
+            log.info("OrganizationId: {}. Preparing to load reservation data from PMS V1.", organizationId);
             loadPmsReservationsService.execute(jobContext, apiKey);
+
+            // load data from the PMS API V2
+            log.info("OrganizationId: {}. Preparing to load property data from PMS V2.", organizationId);
+            loadPmsPropertiesServiceV2.execute(jobContext, apiKey);
+            loadPmsPropertiesPhotoServiceV2.execute(jobContext, apiKey);
+            log.info("OrganizationId: {}. Preparing to load reservation data from PMS V2.", organizationId);
+            loadPmsReservationsServiceV2.execute(jobContext, apiKey);
+            loadReservationsOrdersServiceV2.execute(jobContext, apiKey);
 
             // convert PMS data to Safely format
             log.info("OrganizationId: {}. Preparing to convert PMS properties to Safely structure", organizationId);

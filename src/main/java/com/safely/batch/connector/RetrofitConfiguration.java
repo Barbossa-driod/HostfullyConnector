@@ -3,8 +3,12 @@ package com.safely.batch.connector;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.RateLimiter;
-import com.safely.batch.connector.client.PropertiesV1ApiClient;
-import com.safely.batch.connector.client.ReservationsV1ApiClient;
+import com.safely.batch.connector.client.clientV1.PropertiesV1ApiClient;
+import com.safely.batch.connector.client.clientV1.ReservationsV1ApiClient;
+import com.safely.batch.connector.client.clientV2.PropertiesPhotosV2ApiClient;
+import com.safely.batch.connector.client.clientV2.PropertiesV2ApiClient;
+import com.safely.batch.connector.client.clientV2.ReservationsOrdersV2ApiClient;
+import com.safely.batch.connector.client.clientV2.ReservationsV2ApiClient;
 import com.safely.batch.connector.common.client.safely.*;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
@@ -55,8 +59,7 @@ public class RetrofitConfiguration {
     }
 
     @Bean
-    public PropertiesV1ApiClient getPropertiesV1ApiClient(
-            @Qualifier("PmsApiBuilder") Retrofit retrofit) {
+    public PropertiesV1ApiClient getPropertiesV1ApiClient(@Qualifier("PmsApiBuilder") Retrofit retrofit) {
         return retrofit.create(PropertiesV1ApiClient.class);
     }
 
@@ -64,6 +67,26 @@ public class RetrofitConfiguration {
     public ReservationsV1ApiClient getReservationsV1ApiClient(
             @Qualifier("PmsApiBuilder") Retrofit retrofit) {
         return retrofit.create(ReservationsV1ApiClient.class);
+    }
+
+    @Bean
+    public PropertiesV2ApiClient getPropertiesV2ApiClient(@Qualifier("PmsApiBuilder") Retrofit retrofit){
+        return retrofit.create(PropertiesV2ApiClient.class);
+    }
+
+    @Bean
+    public PropertiesPhotosV2ApiClient getPropertiesPhotosV2ApiClient(@Qualifier("PmsApiBuilder") Retrofit retrofit){
+        return retrofit.create(PropertiesPhotosV2ApiClient.class);
+    }
+
+    @Bean
+    public ReservationsV2ApiClient getReservationsV2ApiClient(@Qualifier("PmsApiBuilder") Retrofit retrofit){
+        return retrofit.create(ReservationsV2ApiClient.class);
+    }
+
+    @Bean
+    public ReservationsOrdersV2ApiClient getReservationsOrdersV2ApiClient(@Qualifier("PmsApiBuilder") Retrofit retrofit){
+        return retrofit.create(ReservationsOrdersV2ApiClient.class);
     }
 
     @Bean
