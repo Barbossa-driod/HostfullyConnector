@@ -1,10 +1,12 @@
 package com.safely.batch.connector.client.clientV2;
 
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.safely.batch.connector.pmsV2.property.PmsPropertyPhotoV2;
 import com.safely.batch.connector.pmsV2.property.PmsPropertyV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -20,8 +22,13 @@ public class PropertiesPhotoServiceV2 {
 
     private final PropertiesPhotosV2ApiClient propertiesPhotosV2ApiClient;
 
-    public PropertiesPhotoServiceV2(PropertiesPhotosV2ApiClient propertiesPhotosV2ApiClient) {
+    private final RateLimiter rateLimiter;
+
+    public PropertiesPhotoServiceV2(PropertiesPhotosV2ApiClient propertiesPhotosV2ApiClient,
+                                    @Qualifier("PmsApiRateLimiter") RateLimiter rateLimiter) {
+
         this.propertiesPhotosV2ApiClient = propertiesPhotosV2ApiClient;
+        this.rateLimiter = rateLimiter;
     }
 
     public void getPropertiesPhotos(String token, List<PmsPropertyV2> pmsProperties) throws Exception {
@@ -29,6 +36,8 @@ public class PropertiesPhotoServiceV2 {
         List<PmsPropertyPhotoV2> pmsPropertyPhotoV2 = new ArrayList<>();
 
         try {
+            rateLimiter.acquire();
+
             for (PmsPropertyV2 property: pmsProperties){
 
                 Call<List<PmsPropertyPhotoV2>> apiCall = propertiesPhotosV2ApiClient.getPhotos(token, property.getUid());

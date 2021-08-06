@@ -1,10 +1,12 @@
 package com.safely.batch.connector.client.clientV2;
 
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.safely.batch.connector.pmsV2.property.PmsPropertiesUidsV2;
 import com.safely.batch.connector.pmsV2.property.PmsPropertyV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -22,8 +24,12 @@ public class PropertiesServiceV2 {
 
     private final PropertiesV2ApiClient propertiesV2ApiClient;
 
-    public PropertiesServiceV2(PropertiesV2ApiClient propertiesV2ApiClient) {
+    private final RateLimiter rateLimiter;
+
+    public PropertiesServiceV2(PropertiesV2ApiClient propertiesV2ApiClient,
+                               @Qualifier("PmsApiRateLimiter") RateLimiter rateLimiter) {
         this.propertiesV2ApiClient = propertiesV2ApiClient;
+        this.rateLimiter = rateLimiter;
     }
 
     public List<PmsPropertyV2> getProperties(String token, String agencyUid) throws Exception {
@@ -40,6 +46,8 @@ public class PropertiesServiceV2 {
         List<PmsPropertyV2> properties = new ArrayList<>();
 
         try {
+            rateLimiter.acquire();
+
             for (String idOfProperty : propertiesId){
                 log.info("Loading property with id: {}", idOfProperty);
                 Call<PmsPropertyV2> apiCall = propertiesV2ApiClient.getProperty(token, idOfProperty, agencyUid);
@@ -75,6 +83,7 @@ public class PropertiesServiceV2 {
         do {
             log.info("Loading page {} of listProperties.", pageCount);
             try {
+                rateLimiter.acquire();
 
                 Call<List<PmsPropertiesUidsV2>> apiCall = propertiesV2ApiClient
                         .listProperties(token, agencyUid, LIMIT, offset);

@@ -1,9 +1,11 @@
 package com.safely.batch.connector.client.clientV2;
 
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.safely.batch.connector.pmsV2.reservation.PmsReservationV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -22,8 +24,12 @@ public class ReservationsServiceV2 {
 
     private ReservationsV2ApiClient reservationsV2ApiClient;
 
-    public ReservationsServiceV2(ReservationsV2ApiClient reservationsV2ApiClient) {
+    private final RateLimiter rateLimiter;
+
+    public ReservationsServiceV2(ReservationsV2ApiClient reservationsV2ApiClient,
+                                 @Qualifier("PmsApiRateLimiter")RateLimiter rateLimiter) {
         this.reservationsV2ApiClient = reservationsV2ApiClient;
+        this.rateLimiter = rateLimiter;
     }
 
     public List<PmsReservationV2> getReservations(String token, String agencyUid) throws Exception {
@@ -36,6 +42,8 @@ public class ReservationsServiceV2 {
         do {
             log.info("Loading page {} of listReservations.", pageCount);
             try {
+                rateLimiter.acquire();
+
                 Response<List<PmsReservationV2>> response = null;
                 int attempts = 0;
                 do {

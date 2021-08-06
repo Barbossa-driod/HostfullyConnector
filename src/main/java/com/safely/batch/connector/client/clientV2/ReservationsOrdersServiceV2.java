@@ -1,10 +1,12 @@
 package com.safely.batch.connector.client.clientV2;
 
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.safely.batch.connector.pmsV2.orders.OrderV2;
 import com.safely.batch.connector.pmsV2.reservation.PmsReservationV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -20,8 +22,12 @@ public class ReservationsOrdersServiceV2 {
 
     private ReservationsOrdersV2ApiClient reservationsOrdersV2ApiClient;
 
-    public ReservationsOrdersServiceV2(ReservationsOrdersV2ApiClient reservationsOrdersV2ApiClient) {
+    private final RateLimiter rateLimiter;
+
+    public ReservationsOrdersServiceV2(ReservationsOrdersV2ApiClient reservationsOrdersV2ApiClient,
+                                       @Qualifier("PmsApiRateLimiter") RateLimiter rateLimiter) {
         this.reservationsOrdersV2ApiClient = reservationsOrdersV2ApiClient;
+        this.rateLimiter = rateLimiter;
     }
 
     public void getOrder(String token, List<PmsReservationV2> pmsReservationV2s) throws Exception {
@@ -29,6 +35,8 @@ public class ReservationsOrdersServiceV2 {
         List<OrderV2> orderV2s = new ArrayList<>();
 
         try {
+            rateLimiter.acquire();
+
             for (PmsReservationV2 reservation : pmsReservationV2s){
 
                 Call<List<OrderV2>> apiCall = reservationsOrdersV2ApiClient
