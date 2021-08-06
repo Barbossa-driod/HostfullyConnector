@@ -92,7 +92,7 @@ public class RetrofitConfiguration {
     @Bean
     @Qualifier("PmsApiRateLimiter")
     public RateLimiter getPmsApiRateLimiter() {
-        int ratePerMinute = pmsRateLimitPerMinute == null ? 17 : pmsRateLimitPerMinute;
+        int ratePerMinute = pmsRateLimitPerMinute == null ? 16 : pmsRateLimitPerMinute;
         double permitsPerSecond = ratePerMinute / 60.0;
         log.info("Creating Pms API RateLimiter with permits per second of: {}", permitsPerSecond);
         return RateLimiter.create(permitsPerSecond);
